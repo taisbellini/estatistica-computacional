@@ -1,5 +1,8 @@
 library(tictoc)
 
+#ex 1
+
+#a
 tic("total")
 tic("create matrix")
 m = matrix(nrow=1000, ncol=200)
@@ -15,6 +18,8 @@ for(i in 1:1000){
 toc()
 toc()
 
+#b 
 tic("apply")
-apply(mapply(rnorm, n = 1000, mean = 1:200), 2, var)
+apply(mapply(rnorm, n=1000, mean=1:200), 1, var)
 toc()
+
