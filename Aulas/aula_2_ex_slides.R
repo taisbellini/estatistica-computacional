@@ -42,7 +42,7 @@ toc()
 tic("total apply")
 msa = list(10)
 for(i in 1:10){
-  msa[[i]] = apply(mapply(rnorm, n=100, mean=1:20), 2, mean)
+  msa[[i]] = lapply(msa,apply(mapply(rnorm, n=100, mean=1:20), 2, mean))
 }
 toc()
 
