@@ -7,7 +7,7 @@ library(clusterGeneration)
 library(tictoc)
 library(Matrix)
 
-# Ex 3
+### Ex 3 ###
 #Ref: http://prorum.com/?qa=2064/como-saber-uma-matriz-positiva-definida-negativa-definida
 #https://davetang.org/muse/2014/01/22/making-symmetric-matrices-in-r/
 
@@ -187,3 +187,61 @@ matplot(times[1:3,], type='l')
 legend("left", colnames(times),col=seq_len(3),cex=0.8,fill=seq_len(3))
 
 
+### Ex 5 ###
+install.packages("rgl")
+library(rgl)
+
+#Visualize function
+x = y = seq(from=-2, to=2, by=0.5)
+
+f = function(x, y) {
+  x^4+y^2+4*x*y
+}
+f(sqrt(8)/2, -sqrt(8))
+f(-sqrt(8)/2, sqrt(8))
+
+z = outer(x, y, f)
+
+persp(x, y, z, ticktype = 'detailed')
+
+
+#Newton-Raphson
+
+#queremos minimizar o lagrangeano
+f = function(x,y, lambda) x^4+y^2+4*x*y+lambda*(x^2+y^2-1)
+
+grad = function(x, y, lambda){
+  rbind(4*x^3+4*y+2*lambda*x,4*x+2*y+2*lambda*y, 2*x+2*y)
+}
+
+hess = function(x, y, lambda){
+  A = matrix(0, ncol=3, nrow=3)
+  A[1,1] = 12*x^2+2*lambda
+  A[1,2] = 4
+  A[1,3] = 2
+  A[2,1] = 4
+  A[2,2] = 2+2*lambda
+  A[2,3] = 2
+  A[3,1] = 2
+  A[3,2] = 2
+  A[3,3] = 0
+  return(A)
+} 
+
+cc = 1
+conta = 0
+x0 = rbind(1,1,1)
+z=x0
+
+while(cc>0.0001){
+  x1 = x0 - solve(hess(x0[1],x0[2],x0[3]))%*%(grad(x0[1], x0[2], x0[3]))
+  cc = sum((x1-x0)^2)
+  x0 = x1
+  conta=conta+1
+  z = cbind(z,x1)
+  
+}
+
+z
+x0
+s
