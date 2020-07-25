@@ -211,17 +211,17 @@ persp(x, y, z, ticktype = 'detailed')
 f = function(x,y, lambda) x^4+y^2+4*x*y+lambda*(x^2+y^2-1)
 
 grad = function(x, y, lambda){
-  rbind(4*x^3+4*y+2*lambda*x,4*x+2*y+2*lambda*y, 2*x+2*y)
+  rbind(4*x^3+4*y+2*lambda*x,4*x+2*y+2*lambda*y, (x^2+y^2)-1)
 }
 
 hess = function(x, y, lambda){
   A = matrix(0, ncol=3, nrow=3)
   A[1,1] = 12*x^2+2*lambda
   A[1,2] = 4
-  A[1,3] = 2
+  A[1,3] = 2*x
   A[2,1] = 4
   A[2,2] = 2+2*lambda
-  A[2,3] = 2
+  A[2,3] = 2*y
   A[3,1] = 2
   A[3,2] = 2
   A[3,3] = 0
@@ -230,7 +230,7 @@ hess = function(x, y, lambda){
 
 cc = 1
 conta = 0
-x0 = rbind(-5,5, 1)
+x0 = rbind(-5,5, -7)
 z=x0
 
 while(cc>0.00001){
