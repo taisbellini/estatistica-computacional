@@ -230,18 +230,17 @@ hess = function(x, y, lambda){
 
 cc = 1
 conta = 0
-x0 = rbind(1,1,1)
+x0 = rbind(-5,5, 1)
 z=x0
 
-while(cc>0.0001){
+while(cc>0.00001){
   x1 = x0 - solve(hess(x0[1],x0[2],x0[3]))%*%(grad(x0[1], x0[2], x0[3]))
   cc = sum((x1-x0)^2)
   x0 = x1
   conta=conta+1
   z = cbind(z,x1)
-  
 }
 
 z
 x0
-s
+
