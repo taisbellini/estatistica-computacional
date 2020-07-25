@@ -241,6 +241,30 @@ while(cc>0.00001){
   z = cbind(z,x1)
 }
 
-z
-x0
+#Questao 6
 
+f = function(x,y,u) x^2 + y^4 - 10*x + 25 + u*x^2 + u*y^2 - 36*u 
+h = function (x, y) x^2 + y^2
+
+u1 = -71.99
+u2 = -1.8
+u3 = -0.16
+
+x = function (u) 10/(2+2*u)
+y= function (u) sqrt(-u/2)
+
+x1 = x(u1)
+x2 = x(u2)
+x3 = x(u3)
+
+y1 = y(u1)
+y2 = y(u2)
+y3 = y(u3)
+
+f(x1, y1, u1)
+f(x2, y2, u2)
+f(x3, y3, u3)
+
+h(x1, y1)
+h(x2, y2)
+h(x3, y3)
