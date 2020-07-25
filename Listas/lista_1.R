@@ -222,15 +222,15 @@ hess = function(x, y, lambda){
   A[2,1] = 4
   A[2,2] = 2+2*lambda
   A[2,3] = 2*y
-  A[3,1] = 2
-  A[3,2] = 2
+  A[3,1] = 2*x
+  A[3,2] = 2*y
   A[3,3] = 0
   return(A)
 } 
 
 cc = 1
 conta = 0
-x0 = rbind(-5,5, -7)
+x0 = rbind(-5,5,1)
 z=x0
 
 while(cc>0.00001){
