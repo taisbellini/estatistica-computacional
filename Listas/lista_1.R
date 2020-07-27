@@ -1,3 +1,6 @@
+### Tais Bellini - 205650 ###
+
+
 install.packages('matrixcalc')
 install.packages('Matrix')
 install.packages('clusterGeneration')
@@ -230,7 +233,7 @@ hess = function(x, y, lambda){
 
 cc = 1
 conta = 0
-x0 = rbind(-5,5,1)
+x0 = rbind(1,-1,1)
 z=x0
 
 while(cc>0.00001){
@@ -240,6 +243,8 @@ while(cc>0.00001){
   conta=conta+1
   z = cbind(z,x1)
 }
+x0
+z
 
 #Questao 6
 
