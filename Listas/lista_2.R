@@ -1,5 +1,65 @@
 ### Lista 2 - Tais Bellini - 205650 ###
 
+
+#### Questao 1 ####
+
+#funcao a ser minimizada
+f = function(u, x, z){ 
+  u = as.matrix(u)
+  sum(z*(x-u[1,])^2) + sum((1-z)*(x-u[2,])^2)
+}
+
+
+#Algoritmo de atualizacao em blocos
+block.opt = function(u0, f, data){
+  
+  cc = FALSE
+  data = as.matrix(data)
+  res = res_temp = cbind(data, rep(0, length(data)))
+  
+  while(!cc){
+    for (i in 1:length(data)){
+      if (f(u0, data[i,], 0) < f(u0, data[i,], 1)) res[i,2] = 0
+      else res[i,2] = 1
+    }
+    
+    if(length(setdiff(res_temp, res)) == 0) cc = TRUE
+    
+    u0[1] = mean(res[res[,2]==1,])
+    u0[2] = mean(res[res[,2]==0,])
+    
+    
+  }
+  
+  colnames(res) = c("x", "z")
+  res = as.data.frame(res)
+  
+  return(list("res.dataframe" = res, "u" = u0))
+  
+}
+
+#inicializar 2 clusters
+
+a = rnorm(100, -1, 2)
+b = rnorm(100, 9, 3)
+data = c(a,b)
+
+u0 = sample(data, 2)
+result = block.opt(u0, f, data)
+
+ggplot(aes(x = as.numeric(row.names(result$res.dataframe)), y = x, color = z), data=result$res.dataframe) + 
+  geom_point()
+
+result$u
+
+#validando o resutado com um algoritmo pre pronto
+kmeans <- kmeans(data, centers = 2)
+result_kmeans = cbind(as.matrix(data), kmeans$cluster)
+colnames(result_kmeans) = c("x", "z")
+result_kmeans = as.data.frame(result_kmeans)
+ggplot(aes(x=as.numeric(row.names(result_kmeans)), y=x, color = z), data=result_kmeans) + geom_point()
+kmeans$centers
+
 #### Questao 2 ####
 
 ## a 
