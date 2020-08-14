@@ -15,18 +15,25 @@ block.opt = function(u0, f, data){
   
   cc = FALSE
   data = as.matrix(data)
-  res = res_temp = cbind(data, rep(0, length(data)))
+  res = res_temp = cbind(data, rep(0, nrow(data)))
+  zindex = ncol(data)+1
+  count = 0
+
   
-  while(!cc){
-    for (i in 1:length(data)){
-      if (f(u0, data[i,], 0) < f(u0, data[i,], 1)) res[i,2] = 0
-      else res[i,2] = 1
+  while(!cc && count < 1000){
+    for (i in 1:nrow(data)){
+      if (f(u0, data[i,], 0) < f(u0, data[i,], 1)) res[i,zindex] = 0 else res[i,zindex] = 1
     }
     
-    if(length(setdiff(res_temp, res)) == 0) cc = TRUE
+    if(sum(res[,zindex] != res_temp[,zindex]) == 5) cc = TRUE
+    res_temp = res
     
-    u0[1] = mean(res[res[,2]==1,])
-    u0[2] = mean(res[res[,2]==0,])
+    u0 = cbind(u0, rep(0, nrow(u0)))
+    u0[1,] = colMeans(res[res[,zindex]==1,])
+    u0[2,] = colMeans(res[res[,zindex]==0,])
+    u0 = u0[1:ncol(data)]
+    
+    count = count + 1 
     
     
   }
@@ -44,11 +51,10 @@ a = rnorm(100, -1, 2)
 b = rnorm(100, 9, 3)
 data = c(a,b)
 
-u0 = sample(data, 2)
+u0 = sample_n(as.data.frame(data), 2)
 result = block.opt(u0, f, data)
 
-ggplot(aes(x = as.numeric(row.names(result$res.dataframe)), y = x, color = z), data=result$res.dataframe) + 
-  geom_point()
+ggplot(aes(x = as.numeric(row.names(result$res.dataframe)), y = x, color = z), data=result$res.dataframe) + geom_point()
 
 result$u
 
