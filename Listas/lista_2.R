@@ -575,7 +575,7 @@ opt.em = function(w0, u0, x, iter){
 d = matrix(unlist(data), ncol = ncol(data), byrow = T)
 class(d) = "numeric"
 
-u0_ci_gn = c(rep(-0.1, 78), rep(0.1, 78))
+u0_ci_gn = c(rep(0, 78), rep(3, 78))
 w0_ci_gn = c(0.5, 0.5)
 EM_res = opt.em(w0_ci_gn, u0_ci_gn, d, 500)
 EM_res$history_w[,ncol(EM_res$history_w)-1]
@@ -583,8 +583,7 @@ EM_res$history_w[,ncol(EM_res$history_w)-1]
 
 model = kmeans(data, 2)
 model$cluster
-
-compare
+# Identificou 2 clusters e separou a pop europeia em um cluster
 
 
 
