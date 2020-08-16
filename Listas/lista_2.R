@@ -750,9 +750,35 @@ head(sort(opt.o_hat))
 head(sort(block.o_hat))
 
 
+tail(sort(o_hat))
+#GRE      INT      ATP      ATM      FLA      PAL 
+#1.191340 1.251964 1.309123 1.345490 1.397676 1.479022 
+
+tail(sort(opt.o_hat))
+#SAN      GRE      INT      ATP      ATM      FLA 
+#1.112318 1.127269 1.130245 1.158171 1.161534 1.178063 
+
+tail(sort(block.o_hat))
+#GRE      INT      ATP      ATM      FLA      PAL 
+#1.875469 1.936093 1.993252 2.029619 2.081805 2.163151 
+
+
 head(sort(d_hat))
 head(sort(opt.d_hat))
 head(sort(block.d_hat))
+
+
+tail(sort(d_hat))
+#CRU       SPA       INT       FLA       GRE       PAL 
+#0.5115840 0.5115840 0.6706457 0.6706457 0.7421054 0.7798492 
+
+tail(sort(opt.d_hat))
+#CRU       SPA       PAL       BAH       INT       GRE 
+#0.4400010 0.4428598 0.4844240 0.5179820 0.5609866 0.6298635 
+
+tail(sort(block.d_hat))
+#CRU      SPA      FLA      INT      GRE      PAL 
+#1.195712 1.195712 1.354777 1.354777 1.426236 1.463976
 
 
 
