@@ -586,4 +586,173 @@ model$cluster
 # Identificou 2 clusters e separou a pop europeia em um cluster
 
 
+#### Questao 4 ####
+
+## DaDOS ARTUR - CMAPEONATO BARSILEIRO 2018 
+
+Casa=matrix(c(0,1,3,1,1,0,0,0,1,2,0,1,2,0,0,2,1,3,2,2,
+              0,0,3,1,1,2,3,1,1,0,5,0,0,1,2,3,1,5,0,2,
+              4,1,0,2,2,2,5,1,2,3,3,2,2,1,3,2,0,4,1,4,
+              1,2,0,0,3,2,1,1,0,0,2,0,0,1,2,1,2,2,3,4,
+              1,0,2,0,0,0,1,1,1,2,2,2,1,1,2,0,2,2,1,1,
+              2,2,0,0,0,0,3,2,0,0,1,0,1,2,1,1,0,1,0,2,
+              1,1,2,1,0,2,0,2,2,3,1,1,2,1,1,0,1,2,1,0,
+              1,1,0,2,2,1,0,0,2,0,2,0,1,1,1,1,1,2,1,0,
+              3,0,2,1,1,0,3,1,0,0,2,0,0,1,3,2,0,2,1,3,
+              2,2,1,2,2,0,2,1,1,0,3,2,2,1,2,1,0,4,1,1,
+              1,1,2,1,1,0,3,1,1,0,0,0,0,1,4,0,1,0,0,0,
+              1,2,0,2,4,3,2,1,1,2,0,0,0,0,2,5,2,3,2,4,
+              2,1,2,2,3,1,3,2,0,2,2,1,0,0,1,2,3,0,3,2,
+              4,3,2,3,2,2,0,1,3,1,3,2,1,0,3,3,3,2,1,3,
+              1,0,0,1,1,0,1,0,1,0,2,0,1,1,0,0,1,1,1,1,
+              0,3,1,2,1,2,0,1,0,1,3,0,1,1,3,0,0,3,1,5,
+              1,2,0,1,3,1,2,3,1,2,1,1,0,0,1,1,0,0,2,3,
+              0,3,1,2,1,1,1,1,0,0,1,0,2,0,1,2,1,0,2,0,
+              4,2,1,2,1,1,3,1,2,1,1,1,1,0,1,0,2,3,0,2,
+              1,1,1,2,3,2,1,2,1,2,1,0,2,0,1,0,0,1,1,0),ncol=20,nrow=20,byrow=T)
+
+
+rownames(Casa)=c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA","FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+colnames(Casa)=c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA","FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+
+GFcasa=apply(Casa,1,sum) # Gols marcados por time em casa
+GScasa=apply(Casa,2,sum) # Gols sofridos por time em casa
+
+
+Fora=matrix(c(0,0,0,0,0,2,0,0,1,0,0,0,0,0,0,1,1,2,1,0,
+              3,0,2,2,3,1,0,1,0,1,0,0,2,2,1,2,2,2,1,0,
+              1,1,0,0,0,0,1,0,1,2,0,0,1,0,0,0,0,0,1,2,
+              0,0,0,0,1,2,1,1,1,0,1,2,0,0,0,0,0,0,1,2,
+              0,0,1,3,0,0,1,0,0,0,0,0,0,0,1,1,2,1,2,4,
+              0,1,2,1,0,0,0,1,2,1,0,2,0,1,1,0,0,0,1,1,
+              0,3,1,0,0,1,0,0,0,0,1,0,0,0,1,1,0,1,1,0,
+              0,0,0,0,0,1,1,0,0,0,0,0,1,0,4,0,1,1,4,2,
+              2,0,0,0,1,1,0,0,0,0,0,1,0,1,1,1,0,0,0,1,
+              2,1,0,0,1,3,2,3,2,0,2,0,1,1,4,1,2,1,1,2,
+              0,2,1,0,1,0,2,1,1,0,0,0,0,0,1,0,1,2,1,2,
+              1,1,1,2,1,1,1,1,1,0,1,0,0,0,0,0,1,0,0,0,
+              1,1,2,1,0,1,1,1,0,0,3,0,0,0,1,2,0,1,1,3,
+              0,1,3,1,1,2,2,0,0,1,0,2,0,0,1,1,2,1,1,3,
+              1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,1,0,0,0,0,
+              1,1,0,0,0,1,0,1,1,0,1,1,2,2,2,0,0,1,3,1,
+              3,0,1,2,2,0,0,1,2,1,1,1,1,1,1,0,0,3,0,1,
+              0,2,0,0,0,0,1,1,0,1,0,4,0,3,2,0,0,0,2,0,
+              1,0,0,0,1,0,1,0,1,1,1,1,1,0,1,1,1,1,0,0,
+              1,1,0,1,1,0,1,0,0,0,0,0,1,2,1,2,0,0,3,0),ncol=20,nrow=20,byrow=T)
+
+rownames(Fora)=c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA","FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+colnames(Fora)=c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA","FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+
+GFfora=apply(Fora,1,sum) # Gols marcados por time fora de casa
+GSfora=apply(Fora,2,sum) # Gols sofridos por time fora de casa
+
+X=Casa+Fora # matriz 20x20 no estilo da apresentada no exercício de aula
+
+
+n=20    # numero de times
+
+# Inicializa vetores para os parametros
+o=numeric(n)  
+d=numeric(n)
+
+## Reune parametros em vetor único - para montar função para otimização
+t=c(o,d)
+
+### Implementação da função log verossimilhança (proporcional)
+# ij vai ate a metade, ji eh o resto, por isso n+j
+logL=function(t, n){
+  temp=0
+  for(i in 1:n){
+    for(j in 1:n){
+      temp=temp -exp(t[i]-t[n+j])+X[i,j]*(t[i]-t[n+j])   # elementos a serem somados para cada par de times registrado
+    }
+  }
+  -temp
+}
+
+# cria um vetor de valores para o parametro
+# chute inicial
+t0=c(rep(1,n),rep(0.35,n))
+
+#funcao que usa newton-like methods
+nr = nlm(logL, p=t0, n=20)
+nr
+
+o_hat = nr$estimate[1:20]
+d_hat = nr$estimate[21:40]
+names(o_hat) = names(d_hat) = c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA",
+                                        "FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+
+head(sort(o_hat))
+
+opt = optim(par = t0, fn = logL, control = list(factr = 1e3), n = 20)
+opt$par
+
+opt.o_hat = opt$par[1:20]
+opt.d_hat = opt$par[21:40]
+names(opt.o_hat) = names(opt.d_hat) = c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA",
+                                "FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+
+head(sort(opt.o_hat))
+
+# Dados de block relaxation para comparar
+
+## Definir valores iniciais para O e D
+d=rep(1,20)
+o=rep(0.5,20)
+
+
+d_old=rep(0,20)
+o_old=rep(0,20)         
+
+n = 20
+O=matrix(ncol=20,nrow=n)  # vamos montar matrizes para guardar o historico da otimização
+D=matrix(ncol=20,nrow=n)
+# salva valores iniciais
+O[,1]=o
+D[,0.5]=d
+
+
+# Define criterio de convergencia
+epslon=0.1
+i=1  # contador de iterações
+
+
+while(sum((d-d_old)^2)+sum((o-o_old)^2)>epslon){   # criterio de convergencia
+  o_old=o
+  # soma em j / soma das exponenciais de -d -> formula que encontramos analiticamente
+  o=log(rowSums(X)/sum(exp(-d)))   #registra o valor antigo, e atualiza todos os o`s
+  d_old=d
+  # soma em i/ soma das exponenciais de o -> formula que encontramos analiticamente
+  d=-log(colSums(X)/sum(exp(o)))  #registra o valor antigo, e atualiza todos os d`s
+  
+  
+  #Salva os valores na matriz  
+  i=i+1
+  O[,i]=o
+  D[,i]=d
+  
+}
+
+block.o_hat = O[,i]           ### Olhar os resultados
+block.d_hat = D[,i]
+
+names(block.o_hat) = names(block.d_hat) = c("AMM","ATM","ATP","BAH","BOT","CEA","CHA","COR","CRU","FLA",
+                                    "FLU","GRE","INT","PAL","PAR","SAN","SPA","SPT","VAS","VIT")
+
+head(sort(block.o_hat))
+head(sort(block.d_hat))
+
+#Comparando:
+
+head(sort(o_hat))
+head(sort(opt.o_hat))
+head(sort(block.o_hat))
+
+
+head(sort(d_hat))
+head(sort(opt.d_hat))
+head(sort(block.d_hat))
+
+
 
