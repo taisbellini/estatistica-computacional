@@ -1,0 +1,16 @@
+---
+title: "Trabalho Final - Estatística Computacional PPGEst - 2020/2"
+output: 
+  html_document:
+    self_contained: false
+bibliography: ref.bibtex
+
+---
+
+# Introdução
+
+  A criptografia consiste no estudo de algoritmos para encripitar e decriptar mensagens para que o conteúdo permaneça seguro e sigiloso entre o remetente e o destinatário. Chamamos de _texto simples_ a mensagem original, _texto cifrado_ a mensagem encriptada, _cifra_ o algoritmo utilizado e _chave_ a função utilizada para codificar e decodificar o texto. Existem diversos tipos de algoritmos para criptografar textos que variam o nível de segurança e complexidade e podem ser classificados de diferentes maneiras. Dentre os algoritmos clássicos, há o de substituição, que consistem em apenas substituir cada letra por outra, e transposição, que reordenam os caracteres do texto de acordo com uma função.[@diffie] Pode-se ainda combinar as duas (cifra de produto [@chen]), ou utilizar estes métodos como base para criptografias mais complexas [@diffie].
+  O artigo escolhido [@chen] busca utilizar o algoritmo Metropolis [], uma versão dos algoritmos de aproximação _Markov Chain Monte Carlo (MCMC)_, para decifrar mensagens encriptados de forma iterativa. Estes métodos já haviam sido utilizados previamente por [@diaconis] e [@connor], porém apenas para cifras de substituição. [@chen] utiliza MCMC para decifrar também códigos que foram criados através do método de transposição e substituição-mais-transposição obtendo bons resultados para chaves de até 40 caracteres. Para a implementação do algoritmo, é usado um texto referência onde se computa uma matriz de frequência dos bigramas (sequências de duas letras) neste texto. Em seguida, para cada suposta chave de decodificação que transforma o texto cifrado em texto simples, salva-se a frequência de bigramas gerados por esta transformação e se compara os bigramas gerados com a matriz de referência para analisar a probabilidade de esta chave estar correta.
+  Em 2016, Fathi-Vajargah et al. [@improved] publicaram um artigo em que foram obtidos resultados com maior acurácia utilizando o mesmo método e apresentando a performance do algoritmo através de números _quasi-random_.  https://www.sciencedirect.com/science/article/abs/pii/S0020019015001398?via%3Dihub ... <mais referencias>?
+  
+
