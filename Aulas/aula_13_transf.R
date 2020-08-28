@@ -3,9 +3,11 @@
 
 n = 1000
 u = runif(n)
+
+#Inversa de f(x) = 1/8x
 x = 4*sqrt(u)
 
-
+# FDA a partir da integral de f(x)
 F=function(x){  ### OK pois todos os valores estão entre 0 e 4.
   y=x^2/16
 }
@@ -18,12 +20,19 @@ hist(x)
 n = 1000
 u = runif(n)
 la = 3
+#inversa
 x = -log(u)/la #u tem distribuicao Uniforme e 1-u tambem, por isso esse e o do caderno dao certo
 ks.test(x,"pexp",rate=la)
 hist(x, probability = T)
 lines(sort(x),dexp(sort(x),rate=la))
 
 
+# Exercicio adicional
+u = runif(1000)
+x = 4*u-2
+hist(x)
+
+ks.test(x, "punif")
 
 ### Exercicio 3
 
@@ -35,15 +44,18 @@ n = 10
 p = 0.3
 x = 0:n
 fmp.bin = p.bin(x,n,p)
+plot(x, fmp.bin)
 probs = cumsum(fmp.bin)
 ns = 10000
 y = rep(0,ns)
 for(i in 1:ns){
   u = runif(1)  
-  pos = sum(u > probs) + 1
+  pos = sum(u > probs) + 1 #vetor de probs dizendo se eh maior que o P. +1 pra ficar no intervalo certo
   y[i] = x[pos]
 }
 
+plot(table(y))
+mean(y)
 
 
 ### Exercício 4
@@ -69,7 +81,7 @@ probs.cum = cumsum(probs.aux)
 probs.poisson = probs.cum[probs.cum <= limsup]  
 
 
-### Opção 1:
+### Opção 1: considera o que passou do limite como o ultimo
 gna.disc2 = function(x,prob.fmp,n){
   y = rep(0,n)
   probs = cumsum(prob.fmp)
@@ -83,7 +95,10 @@ gna.disc2 = function(x,prob.fmp,n){
 }
 
 
-### Opção 2:
+### Opção 2: se cai fora do limite, repete a operacao
+#isto acaba gerando um sequencia de numeros diferentes, mesmo com a semente, 
+#pois estamos 'saindo da ordem'
+
 gna.disc3 = function(x,prob.fmp,n){
   y = rep(0,n)
   probs = cumsum(prob.fmp)
@@ -112,8 +127,9 @@ x2 = gna.disc3(z,p.pois(z,la),ns)
 set.seed(10)
 x3 = rpois(ns,la)
 
-sum(x1 == x3)
+sum(x1 == x3) 
 sum(x2 == x3)
+# fica igual pois aquela ultima prob eh tao pequena que em 1000 repeticoes nao aconteceu
 
 
 
