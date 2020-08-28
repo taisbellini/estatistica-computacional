@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Trabalho Final - Estatística Computacional PPGEst - 2020/2</title>
+
+<script src="trabalho_final_master_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="trabalho_final_master_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="trabalho_final_master_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="trabalho_final_master_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="trabalho_final_master_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="trabalho_final_master_files/navigation-1.1/tabsets.js"></script>
+<link href="trabalho_final_master_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="trabalho_final_master_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Trabalho Final - Estatística Computacional PPGEst - 2020/2</h1>
+
+</div>
+
+
+<div id="introducao" class="section level1">
+<h1>Introdução</h1>
+<p>A criptografia consiste no estudo de algoritmos para encripitar e decriptar mensagens para que o conteúdo permaneça seguro e sigiloso entre o remetente e o destinatário. Chamamos de <em>texto simples</em> a mensagem original, <em>texto cifrado</em> a mensagem encriptada, <em>cifra</em> o algoritmo utilizado e <em>chave</em> a função utilizada para codificar e decodificar o texto. Existem diversos tipos de algoritmos para criptografar textos que variam o nível de segurança e complexidade e podem ser classificados de diferentes maneiras. Dentre os algoritmos clássicos, há o de substituição, que consistem em apenas substituir cada letra por outra, e transposição, que reordenam os caracteres do texto de acordo com uma função.<span class="citation">(n.d.a)</span> Pode-se ainda combinar as duas (cifra de produto <span class="citation">(n.d.b)</span>), ou utilizar estes métodos como base para criptografias mais complexas <span class="citation">(n.d.a)</span>. O artigo escolhido <span class="citation">(n.d.b)</span> busca utilizar o algoritmo Metropolis [], uma versão dos algoritmos de aproximação <em>Markov Chain Monte Carlo (MCMC)</em>, para decifrar mensagens encriptados de forma iterativa. Estes métodos já haviam sido utilizados previamente por <span class="citation">(Diaconis 2008)</span> e <span class="citation">(n.d.c)</span>, porém apenas para cifras de substituição. <span class="citation">(n.d.b)</span> utiliza MCMC para decifrar também códigos que foram criados através do método de transposição e substituição-mais-transposição obtendo bons resultados para chaves de até 40 caracteres. Para a implementação do algoritmo, é usado um texto referência onde se computa uma matriz de frequência dos bigramas (sequências de duas letras) neste texto. Em seguida, para cada suposta chave de decodificação que transforma o texto cifrado em texto simples, salva-se a frequência de bigramas gerados por esta transformação e se compara os bigramas gerados com a matriz de referência para analisar a probabilidade de esta chave estar correta. Em 2016, Fathi-Vajargah et al. <span class="citation">(Fathi-Vajargah and Kanafchian 2016)</span> publicaram um artigo em que foram obtidos resultados com maior acurácia utilizando o mesmo método e apresentando a performance do algoritmo através de números <em>quasi-random</em>. <a href="https://www.sciencedirect.com/science/article/abs/pii/S0020019015001398?via%3Dihub" class="uri">https://www.sciencedirect.com/science/article/abs/pii/S0020019015001398?via%3Dihub</a> … <mais referencias>?</p>
+<div id="refs" class="references">
+<div id="ref-diaconis">
+<p>Diaconis, Persi. 2008. “The Markov Chain Monte Carlo Revolution.”</p>
+</div>
+<div id="ref-improved">
+<p>Fathi-Vajargah, Behrouz, and Mohadeseh Kanafchian. 2016. “Improved Markov Chain Monte Carlo Method for Cryptanalysis Substitution-Transposition Cipher.” <em>Monte Carlo Methods and Applications</em>.</p>
+</div>
+<div id="ref-diffie">
+<p>n.d.a.</p>
+</div>
+<div id="ref-chen">
+<p>n.d.b.</p>
+</div>
+<div id="ref-connor">
+<p>n.d.c.</p>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
