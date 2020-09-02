@@ -132,3 +132,49 @@ b = bdef-adef
 
 unif.3 = unif.generator(a, b, n)
 hist(unif.3)
+
+
+## Exercicio 3 
+
+# a - E(X)
+
+# utilizando o metodo naive 
+
+set.seed(205650)
+nu = 100
+nr = 5000
+X = rep(0, nr)
+
+for(i in 1:nr){ 
+  u = runif(nu)
+  j = 2
+  x = u[1] + u[2]
+  while(x <= 1){
+    j = j+1
+    x = x + u[j]
+  }
+  X[i] = j
+}
+
+# estimador
+xbarra = mean(X)
+xbarra
+hist(X)
+#[1] 2.708
+
+# erro 
+vn = (1/nr^2)*sum((X-xbarra)^2)
+vn 
+#[1] 0.001549472
+
+
+# b - P(X>=10)
+
+p_greater10 = sum(X>=10)/nr
+p_greater10
+
+# c - P(X=10)
+
+p_greater10 = sum(X==10)/nr
+p_greater10
+
