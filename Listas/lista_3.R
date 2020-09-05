@@ -85,6 +85,55 @@ bn = BN.generator(k,n,p)
 
 # e - Multivariada
 
+nr = 1000
+
+fmp_conj = function(x, y, n, p)
+{
+  return( choose(n,x) * choose(n,y) * ( ( x^y * (n - x)^(n - y) * p^x * (1-p)^(n - x) ) / (n^n) ) )
+}
+
+# parametro escolhido arbitrariamente:
+p = 0.7
+n = 10
+
+# todas as primeiras possiveis combinacoes de valores de x e de y ateh n:
+
+x_range = 0:n
+y_range = 0:n
+vars = expand.grid(x_range,y_range)
+
+# calcula as probabilidades:
+prob = numeric(length(vars[,1]))
+
+for ( i in 1:length(vars[,1]))
+{
+  prob[i] = fmp_conj(vars[i,1], vars[i,2],n,p)
+  i = i + 1
+}
+
+# agora define intervalos (probabilidade acumulada):
+
+ints = cumsum(prob)
+ints = c(ints ,1)
+
+bivariada_simulada = matrix(0, ncol=2, nrow=nr)
+
+# ve em qual intervalo a uniforme[0,1] caiu, essa eh a nossa variavel gerada de interesse:
+for (i in 1:RE){
+  unif <- runif(1)
+  posicao = sum(unif>ints)
+  bivariada_simulada[i,1] = as.numeric(vars[posicao,1])
+  bivariada_simulada[i,2] = as.numeric(vars[posicao,2])
+}
+
+# resultado final:
+print(bivariada_simulada)
+
+# histogramas:
+layout(1:2)
+hist(bivariada_simulada[,1])
+hist(bivariada_simulada[,2])
+
 
 ## Exercicio 2
 
@@ -166,15 +215,126 @@ hist(X)
 vn = (1/nr^2)*sum((X-xbarra)^2)
 vn 
 #[1] 0.001549472
+sd = sqrt(vn)
+sd
+#[1] 0.01223201
 
 
 # b - P(X>=10)
+# https://www.dam.brown.edu/lcds/publications/fulltext/2006-003.pdf
 
+#naive
 p_greater10 = sum(X>=10)/nr
 p_greater10
+# apenas o metodo naive nao funciona, pois estamos querendo estimar uma cauda
+# assim, a probabilidade de se gerar um valor neste range eh mt prox de zero
+
+# Importance Sampling
+
+# usando beta como g(x), vamos utilizar uma parametrizacao que tenha alta 
+#probabilidade de gerar valores pequenos, assim, temos mais chance de o n  
+# da soma ser > 10
+
+set.seed(205650)
+
+shape1 = 1
+shape2 = 8
+k = 9
+n = 1000
+
+# testando a parametrizacao
+beta = rbeta(k, shape1, shape2)
+hist(beta)
+
+sim = matrix(nrow = n, ncol = k)
+
+
+for (i in 1:n) {
+  sim[i,] = rbeta(k, shape1, shape2) 
+}
+
+# indicadora se temos a soma menor que 1 das k variaveis geradas
+hx = apply(sim, 1, sum) <= 1
+
+#densidade da uniforme padrao
+fx = 1
+
+# conjunta da beta
+fdp_beta = apply(sim, 2, function (x) { dbeta(x, shape1, shape2) })
+gx = apply(fdp_beta, 1, prod)
+
+est_vec = (hx*fx)/gx
+est = mean(est_vec)
+paste ('Estimativa: ', est)
+# [1] 2.71119972633006e-06
+
+#erro
+vn = (1/n^2)*sum((est_vec-est)^2)
+paste('Variancia da estimativa: ', vn)
+# [1] 4.05721543984121e-13
+
+sd = sqrt(vn)
+sd
+paste('Desvio padrao da estimativa: ', sd)
+# [1] 6.36962749290821e-07
+
 
 # c - P(X=10)
 
-p_greater10 = sum(X==10)/nr
-p_greater10
+# Neste caso, queremos avaliar se o n = 10. Assim, vamos gerar 10 vars com 
+#distribuicao beta e nossa h(x) sera a indicadora da soma de 1-9 ser <=1 e a soma 
+# de 1-10 > 1
 
+shape1 = 1
+shape2 = 8
+k = 10
+n = 1000
+
+sim = matrix(nrow = n, ncol = k)
+
+for (i in 1:n) {
+  sim[i,] = rbeta(k, shape1, shape2) 
+}
+
+
+# indicadora se temos a soma menor que 1 das k variaveis geradas
+hx = (apply(sim[,1:9], 1, sum) <= 1) & ((apply(sim, 1, sum) > 1)) 
+
+#densidade da uniforme padrao
+fx = 1
+
+# conjunta da beta
+fdp_beta = apply(sim, 2, function (x) { dbeta(x, shape1, shape2) })
+gx = apply(fdp_beta, 1, prod)
+
+est_vec = (hx*fx)/gx
+est = mean(est_vec)
+paste ('Estimativa: ', est)
+# [1] 2.25728603112163e-06
+
+#erro
+vn = (1/n^2)*sum((est_vec-est)^2)
+paste('Variancia da estimativa: ', vn)
+# [1] 1.48997002743075e-13
+
+sd = sqrt(vn)
+sd
+paste('Desvio padrao da estimativa: ', sd)
+# [1] 3.86001298887808e-07
+
+
+# Exercicio 4 
+
+X = c(6.2, 5.1, 7.6, 2.5, 3.5, 9.4, 4.1, 6.3, 3.0, 0.8)
+Y = c(6.9, 5.1, 7.5, 11.1, 10.9, 4.2, 10.5, 6.8, 12.3, 14.3)
+
+data = data.frame(X = X, Y = Y)
+
+data.boot = data[sample(1:nrow(data), replace = TRUE),]
+cor(data.boot$X, data.boot$Y)
+
+data.boot <- replicate(100, data[sample(1:nrow(data),replace=T),], simplify= F)
+corr.boot <- sapply(data.boot, function(mat) cor(mat$X, mat$Y))
+hist(corr.boot, freq = F, ylab = "Densidade") 
+
+quantile(corr.boot, probs = c(0.025, 0.975))
