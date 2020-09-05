@@ -85,55 +85,6 @@ bn = BN.generator(k,n,p)
 
 # e - Multivariada
 
-nr = 1000
-
-fmp_conj = function(x, y, n, p)
-{
-  return( choose(n,x) * choose(n,y) * ( ( x^y * (n - x)^(n - y) * p^x * (1-p)^(n - x) ) / (n^n) ) )
-}
-
-# parametro escolhido arbitrariamente:
-p = 0.7
-n = 10
-
-# todas as primeiras possiveis combinacoes de valores de x e de y ateh n:
-
-x_range = 0:n
-y_range = 0:n
-vars = expand.grid(x_range,y_range)
-
-# calcula as probabilidades:
-prob = numeric(length(vars[,1]))
-
-for ( i in 1:length(vars[,1]))
-{
-  prob[i] = fmp_conj(vars[i,1], vars[i,2],n,p)
-  i = i + 1
-}
-
-# agora define intervalos (probabilidade acumulada):
-
-ints = cumsum(prob)
-ints = c(ints ,1)
-
-bivariada_simulada = matrix(0, ncol=2, nrow=nr)
-
-# ve em qual intervalo a uniforme[0,1] caiu, essa eh a nossa variavel gerada de interesse:
-for (i in 1:RE){
-  unif <- runif(1)
-  posicao = sum(unif>ints)
-  bivariada_simulada[i,1] = as.numeric(vars[posicao,1])
-  bivariada_simulada[i,2] = as.numeric(vars[posicao,2])
-}
-
-# resultado final:
-print(bivariada_simulada)
-
-# histogramas:
-layout(1:2)
-hist(bivariada_simulada[,1])
-hist(bivariada_simulada[,2])
-
 
 ## Exercicio 2
 
