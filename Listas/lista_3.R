@@ -330,13 +330,49 @@ paste('Desvio padrao da estimativa: ', sd)
 X = c(6.2, 5.1, 7.6, 2.5, 3.5, 9.4, 4.1, 6.3, 3.0, 0.8)
 Y = c(6.9, 5.1, 7.5, 11.1, 10.9, 4.2, 10.5, 6.8, 12.3, 14.3)
 
+B = 3000
+
 data = data.frame(X = X, Y = Y)
 
-data.boot = data[sample(1:nrow(data), replace = TRUE),]
-cor(data.boot$X, data.boot$Y)
+f.mqo = function(data){
+  model = lm(data$Y ~ data$X)
+  b0.h = model$coefficients[1]
+  b1.h = model$coefficients[2]
+  return(list("b0" = b0.h, "b1" = b1.h))
+}
 
-data.boot <- replicate(100, data[sample(1:nrow(data),replace=T),], simplify= F)
-corr.boot <- sapply(data.boot, function(mat) cor(mat$X, mat$Y))
-hist(corr.boot, freq = F, ylab = "Densidade") 
+estimador_amostra = f.mqo(data)
+estimador_amostra
 
-quantile(corr.boot, probs = c(0.025, 0.975))
+# a - IC 95%
+
+# vetores de b0 e b1 para as 300 amostras Bootstrap
+b0b = numeric(B)
+b1b = numeric(B)
+
+for (i in 1:B){
+  datab = data[sample(nrow(data), nrow(data), replace = T), ]
+  est = f.mqo(datab)
+  b0b[i] = est$b0
+  b1b[i] = est$b1
+}
+
+# IC por normalidade
+
+b0.sdb = sd(b0b)
+b1.sdb = sd(b1b)
+
+paste("IC por normalidade para b0: ", 
+      estimador_amostra$b0 - 1.96*b0.sdb, estimador_amostra$b0 + 1.96*b0.sdb)
+paste("IC por normalidade para b1: ", 
+      estimador_amostra$b1 - 1.96*b1.sdb, estimador_amostra$b1 + 1.96*b1.sdb)
+
+# IC por quantil
+
+print("IC por quantil para b0: ")
+print(quantile(b0b, c(0.025, 0.975)))
+
+print("IC por quantil para b1: ")
+print(quantile(b1b, c(0.025, 0.975)))
+
+# b
