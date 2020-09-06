@@ -2,10 +2,9 @@
 
 # a - Distribuicao Pareto
 # ref: http://www.eletrica.ufpr.br/pedroso/2012/TE816/Distribuicoes.pdf
+install.packages("EnvStats")
+library(EnvStats)
 
-pareto.func = function(alpha, beta, x){
-  return((alpha*beta^alpha)/x^(alpha+1))
-}
 
 pareto.inversa = function(alpha, beta, x){
   return(beta/(1-x)^(1/alpha))
@@ -18,11 +17,15 @@ pareto.generator = function (alpha, beta, n) {
 }
 
 n = 1000
-alpha = 1
-beta = 1
+alpha = 7
+beta = 5
 pareto.gen = pareto.generator(alpha, beta, n)
 
-ks.test(pareto.gen, pareto.func(alpha, beta, pareto.gen))
+pareto = rpareto(n, alpha, beta)
+hist(pareto, xlim = c(0,1000))
+hist(pareto.gen, xlim = c(0,1000))
+
+ks.test(pareto.gen, rpareto(n, alpha, beta))
 
 # b - Distribuicao Gumbel 
 
@@ -84,6 +87,54 @@ BN.generator = function(k, n, p){
 bn = BN.generator(k,n,p)
 
 # e - Multivariada
+
+nr = 1000
+
+#range de x e y
+n = 10
+
+#p arbitrario
+p = 0.7
+
+fmp_conjunta = function(x, y, n, p)
+{
+  return( choose(n,x) * choose(n,y) * ( ( x^y * (n - x)^(n - y) * p^x * (1-p)^(n - x) ) / (n^n) ) )
+}
+
+# Matriz com todas as combinacoes possiveis de x e y e sua prob
+
+x = 1:n
+y = 1:n
+ea = expand.grid(x,y)
+probs = cbind(ea, 0)
+colnames(probs) = c('x', 'y', 'prob')
+
+for (i in 1:length(probs[,1])){
+  probs[i,3] = fmp_conjunta(probs[i,1], probs[i,2], n, p)
+}
+
+fda = cumsum(probs[,3])
+fda = c(fda, 1)
+plot(fda)
+
+bivar.gen = matrix(nrow = nr, ncol = 2)
+colnames(bivar.gen) = c('x', 'y')
+
+for (i in 1:nr) {
+  u = runif(1)
+  pos = sum(u>fda)
+  bivar.gen[i,1] = probs[pos,1]
+  bivar.gen[i,2] = probs[pos,2]
+}
+
+bivar.gen = cbind(bivar.gen, 0)
+
+for (i in 1:length(bivar.gen[,1])){
+  bivar.gen[i,3] = fmp_conjunta(bivar.gen[i,1], bivar.gen[i,2], n, p)
+}
+
+hist(bivar.gen[,1])
+hist(bivar.gen[,2])
 
 
 ## Exercicio 2
@@ -204,7 +255,7 @@ for (i in 1:n) {
   sim[i,] = rbeta(k, shape1, shape2) 
 }
 
-# indicadora se temos a soma menor que 1 das k variaveis geradas
+# indicadora se temos a soma menor ou igual a 1 das k variaveis geradas
 hx = apply(sim, 1, sum) <= 1
 
 #densidade da uniforme padrao
