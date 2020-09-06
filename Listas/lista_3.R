@@ -390,11 +390,58 @@ b1b = numeric(B)
 
 for (i in 1:B){
   e = rnorm(length(X), 0, var_estimada)
-  
-  datab = data[sample(nrow(data), nrow(data), replace = T), ]
+  Yh = estimador_amostra$b0 + estimador_amostra$b1*X + e
+  datab = data.frame(X = X, Y = Yh)
   est = f.mqo(datab)
   b0b[i] = est$b0
   b1b[i] = est$b1
 }
+
+# IC por normalidade
+
+b0.sdb = sd(b0b)
+b1.sdb = sd(b1b)
+
+paste("IC por normalidade para b0: ", 
+      estimador_amostra$b0 - 1.96*b0.sdb, estimador_amostra$b0 + 1.96*b0.sdb)
+paste("IC por normalidade para b1: ", 
+      estimador_amostra$b1 - 1.96*b1.sdb, estimador_amostra$b1 + 1.96*b1.sdb)
+
+# IC por quantil
+
+print("IC por quantil para b0: ")
+print(quantile(b0b, c(0.025, 0.975)))
+
+print("IC por quantil para b1: ")
+print(quantile(b1b, c(0.025, 0.975)))
+
+# c - Teste de permutacao 
+# H0: b1 = 0
+# Se b1 = 0, entao X nao tem influencia no Y e podemos permutar Y e gerar os coeficientes 
+
+X = c(6.2, 5.1, 7.6, 2.5, 3.5, 9.4, 4.1, 6.3, 3.0, 0.8)
+Y = c(6.9, 5.1, 7.5, 11.1, 10.9, 4.2, 10.5, 6.8, 12.3, 14.3)
+
+B = 1000
+
+estimador_amostra = lm(Y~X)
+b1h = f.mqo(data.frame(X=X, Y=Y))$b1
+
+b1b = numeric(B)
+
+for (i in 1:B) {
+  Yp = sample(Y)
+  est_p = f.mqo(data.frame(X=X, Y=Yp))
+  b1b[i] = est_p$b1
+}
+
+hist(b1b)
+abline(v=b1h)
+
+pval = (b1b <= b1h)
+mean(pval)
+# [1] 0.00
+# Rejeitamos H0. 
+
 
 
