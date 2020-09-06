@@ -25,7 +25,7 @@ pareto = rpareto(n, alpha, beta)
 hist(pareto, xlim = c(0,1000))
 hist(pareto.gen, xlim = c(0,1000))
 
-ks.test(pareto.gen, rpareto(n, alpha, beta))
+ks.test(pareto.gen, "ppareto", beta, alpha)
 
 # b - Distribuicao Gumbel 
 
@@ -66,8 +66,7 @@ d2 = 2
 F.var = F.generator(d1,d2,n)
 hist(F.var)
 
-
-ks.test(F.var, df(F.var, d1, d2))
+ks.test(F.var, "pf", d1, d2)
 
 # d - Binomial Negativa 
 
