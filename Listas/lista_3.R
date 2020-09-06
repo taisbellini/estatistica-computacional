@@ -338,7 +338,8 @@ f.mqo = function(data){
   model = lm(data$Y ~ data$X)
   b0.h = model$coefficients[1]
   b1.h = model$coefficients[2]
-  return(list("b0" = b0.h, "b1" = b1.h))
+  fitted = model$fitted.values
+  return(list("b0" = b0.h, "b1" = b1.h, "fitted" = fitted, "res" = model$residuals))
 }
 
 estimador_amostra = f.mqo(data)
@@ -375,4 +376,25 @@ print(quantile(b0b, c(0.025, 0.975)))
 print("IC por quantil para b1: ")
 print(quantile(b1b, c(0.025, 0.975)))
 
-# b
+# b - Bootstrap parametrico
+
+X = c(6.2, 5.1, 7.6, 2.5, 3.5, 9.4, 4.1, 6.3, 3.0, 0.8)
+Y = c(6.9, 5.1, 7.5, 11.1, 10.9, 4.2, 10.5, 6.8, 12.3, 14.3)
+
+estimador_amostra = f.mqo(data)
+var_estimada = var(estimador_amostra$res)
+
+# vetores de b0 e b1 para as 300 amostras Bootstrap
+b0b = numeric(B)
+b1b = numeric(B)
+
+for (i in 1:B){
+  e = rnorm(length(X), 0, var_estimada)
+  
+  datab = data[sample(nrow(data), nrow(data), replace = T), ]
+  est = f.mqo(datab)
+  b0b[i] = est$b0
+  b1b[i] = est$b1
+}
+
+
