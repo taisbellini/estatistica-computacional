@@ -7,10 +7,36 @@ bibliography: ref.bibtex
 
 ---
 
-# Introdução
+# Implementacao
 
-  A criptografia consiste no estudo de algoritmos para encripitar e decriptar mensagens para que o conteúdo permaneça seguro e sigiloso entre o remetente e o destinatário. Chamamos de _texto simples_ a mensagem original, _texto cifrado_ a mensagem encriptada, _cifra_ o algoritmo utilizado e _chave_ a função utilizada para codificar e decodificar o texto. Existem diversos tipos de algoritmos para criptografar textos que variam o nível de segurança e complexidade e podem ser classificados de diferentes maneiras. Dentre os algoritmos clássicos, há o de substituição, que consistem em apenas substituir cada letra por outra, e transposição, que reordenam os caracteres do texto de acordo com uma função.[@diffie] Pode-se ainda combinar as duas (cifra de produto [@chen]), ou utilizar estes métodos como base para criptografias mais complexas [@diffie].
-  O artigo escolhido [@chen] busca utilizar o algoritmo Metropolis [], uma versão dos algoritmos de aproximação _Markov Chain Monte Carlo (MCMC)_, para decifrar mensagens encriptados de forma iterativa. Estes métodos já haviam sido utilizados previamente por [@diaconis] e [@connor], porém apenas para cifras de substituição. [@chen] utiliza MCMC para decifrar também códigos que foram criados através do método de transposição e substituição-mais-transposição obtendo bons resultados para chaves de até 40 caracteres. Para a implementação do algoritmo, é usado um texto referência onde se computa uma matriz de frequência dos bigramas (sequências de duas letras) neste texto. Em seguida, para cada suposta chave de decodificação que transforma o texto cifrado em texto simples, salva-se a frequência de bigramas gerados por esta transformação e se compara os bigramas gerados com a matriz de referência para analisar a probabilidade de esta chave estar correta.
-  Em 2016, Fathi-Vajargah et al. [@improved] publicaram um artigo em que foram obtidos resultados com maior acurácia utilizando o mesmo método e apresentando a performance do algoritmo através de números _quasi-random_.  https://www.sciencedirect.com/science/article/abs/pii/S0020019015001398?via%3Dihub ... <mais referencias>?
+Importar texto e limpar espacos e caracteres especiais: 
+
+```{r import, message=FALSE, warning=FALSE}
+install.packages("gutenbergr")
+library(gutenbergr)
+
+ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
+ref_text = gutenberg_download(ref_text_id)
+ref_text_clean = as.data.frame(gsub("[[:punct:]]| ", "", as.matrix(ref_text)))
+ref_text_clean = ref_text_clean[ref_text_clean$text != "",]
+ref_text_clean = ref_text_clean[!grepl("CHAPTER", ref_text_clean$text),]
+
+```
+
+
+Criar bigramas de caracteres: 
+```{r}
+
+
+
+
+
+```
+
+
+
+# Texto
+
+  https://www.overleaf.com/project/5f3b3abb4e5c680001f39e14
   
 
