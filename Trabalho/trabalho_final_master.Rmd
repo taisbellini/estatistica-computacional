@@ -17,19 +17,27 @@ library(gutenbergr)
 
 ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
 ref_text = gutenberg_download(ref_text_id)
-ref_text_clean = as.data.frame(gsub("[[:punct:]]| ", "", as.matrix(ref_text)))
+ref_text_clean = as.data.frame(gsub("[[:punct:]]|[0-9]*", "", as.matrix(ref_text)))
 ref_text_clean = ref_text_clean[ref_text_clean$text != "",]
-ref_text_clean = ref_text_clean[!grepl("CHAPTER", ref_text_clean$text),]
-
+ref_text_clean = toupper(as.character(ref_text_clean$text))
+ref_text_clean = lapply(ref_text_clean, trimws)
 ```
 
 
-Criar bigramas de caracteres: 
+Criar bigramas de caracteres e gerar tabela de freq: 
 ```{r}
+library("stringr")
+library(devtools)
+
+install_github("diogo-almeida/bigramr")
 
 
+ref = as.character(ref_text_clean)
+ref
+bigrams = bigramr::ConvertStrings2Bigrams(ref)
+bigrams = unlist(bigrams)
 
-
+bigrams_freq = as.data.frame(table(bigrams))
 
 ```
 
