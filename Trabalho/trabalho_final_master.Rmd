@@ -9,6 +9,7 @@ bibliography: ref.bibtex
 
 # Implementacao
 
+## Importar e limpar
 Importar texto e limpar espacos e caracteres especiais: 
 
 ```{r import, message=FALSE, warning=FALSE}
@@ -23,6 +24,7 @@ ref_text_clean = toupper(as.character(ref_text_clean$text))
 ref_text_clean = lapply(ref_text_clean, trimws)
 ```
 
+## Frequencia de Bigramas
 
 Criar bigramas de caracteres e gerar tabela de freq: 
 ```{r}
@@ -31,13 +33,43 @@ library(devtools)
 
 install_github("diogo-almeida/bigramr")
 
-
 ref = as.character(ref_text_clean)
 ref
 bigrams = bigramr::ConvertStrings2Bigrams(ref)
 bigrams = unlist(bigrams)
 
 bigrams_freq = as.data.frame(table(bigrams))
+
+```
+
+
+## Encriptar e Decriptar
+
+Funcoes para encriptar e decriptar pelos diversos metodos: substituicao, transposicao, substituicao-transposicao.
+
+### Substituicao
+
+```{r}
+# Recebe uma string de texto, vetor com o alfabeto, vetor com a chave
+# Retorna vetor com a string encriptada/decriptada
+encode_subs = function(alpha, key, text_str){
+  text = unlist(strsplit(text_str, split = "", fixed = TRUE))
+  encoded = sapply(text, function(x) key[match(x, alpha)])
+  return(encoded)
+}
+
+decode_subs = function(alpha, key, text_str) {
+  text = unlist(strsplit(text_str, split = "", fixed = TRUE))
+  decoded = sapply(text, function(x) alpha[match(x, key)])
+  return(decoded)
+}
+
+text_str = 'OI PESSOAL'
+alpha = c(LETTERS, " ")
+key = sample(alpha)
+
+encoded = encode_subs(alpha, key, text)
+decoded = decode_subs(alpha, key, unlist(encoded))
 
 ```
 
