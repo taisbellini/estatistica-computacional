@@ -1,7 +1,79 @@
+#### Exercicio 2 ####
+funcao_p = function(x){
+  return(exp(-(x[1]^2/2)-(x[2]^2/2)))
+}
+
+# Proposta: x1, x2 +- 1, 2, 3, 5, 8
+proposta = function(x){
+  range_step = c(1,2,3,5,8)
+  range_direction = c(-1,1)
+  x1 = x[1] + sample(range_step,1)*sample(range_direction,1)
+  x2 = x[2] + sample(range_step,1)*sample(range_direction,1)
+  return(c(x1,x2))
+}
+
+prob_aceita = function(x_new, x_old){
+  return(min(funcao_p(x_new)/funcao_p(x_old), 1))
+}
+
+MCMC_run = function(start, n_MCMC){
+  
+  len = length(start)
+  
+  MCMC_d=matrix(ncol=n_MCMC, nrow=len)    
+  
+  MCMC_d[,1]=start
+  
+  it=1
+  while(it < (n_MCMC-1)){
+    x_old=MCMC_d[,it]
+    x_new=x_old
+    x_new=proposta(x_old)
+      
+    if(runif(1)<prob_aceita(x_new,x_old)){
+      MCMC_d[,it+1]=x_new 
+    }else{
+      MCMC_d[,it+1]=x_old 
+    }
+    it=it+1
+  }
+  return(MCMC_d)
+}
+
+n_MCMC = 5000
+MCMC_mvn = MCMC_run(c(0,0), n_MCMC)
+
+mu = rowMeans(MCMC_mvn, na.rm = T)
+sigma = apply(MCMC_mvn, 1, var, na.rm = T)
+paste("Ex2 Mean: ", mu)
+paste("Ex2 Var: ", sigma)
+
+totals_x1 = table(MCMC_mvn[1,])
+prob_x1 = table(MCMC_mvn[1,])/sum(totals_x1)
+
+totals_x2 = table(MCMC_mvn[2,])
+prob_x2 = table(MCMC_mvn[2,])/sum(totals_x2)
 
 
+barplot(prob_x1,main="Marginal x1",ylab="Frequency",xlab="X1")
+barplot(prob_x2,main="Marginal x2",ylab="Frequency",xlab="X2")
 
 
+library(ggplot2)
+library(plyr)
+
+df = as.data.frame(t(MCMC_mvn), na.rm = T)
+colnames(df) = c("x1", "x2")
+df$x1 = as.factor(df$x1)
+df$x2 = as.factor(df$x2)
+# Get the frequency counts
+dfc <- ddply(df, c("x1", "x2"), "nrow", .drop = F)
+dfc = na.omit(dfc)
+
+ggplot(data = dfc, aes(x = x1, y = x2, size = factor(nrow))) + 
+  geom_point()
+
+remove(list = ls())
 
 #### Exercicio 3 ####
 install.packages("coda")
