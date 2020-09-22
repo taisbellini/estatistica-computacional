@@ -13,29 +13,43 @@ bibliography: ref.bibtex
 Importar texto e limpar espacos e caracteres especiais: 
 
 ```{r import, message=FALSE, warning=FALSE}
-
 if (!require(gutenbergr)) install.packages("gutenbergr")
 library(gutenbergr)
 
-gb_text_to_vector = function(text){
-  ref_text_clean = as.data.frame(gsub("[[:punct:]]|[0-9]*", "", as.matrix(text)))
+# Funcao para limpar um texto baixado pela lib gutenbergr
+# Entrada: texto no formato da biblioteca gutenbergr
+# Saida: vetor de strings
+gb_text_to_vector = function(gb_text){
+  ref_text_clean = as.data.frame(gsub("[[:punct:]]|[0-9]*", "", as.matrix(gb_text)))
   ref_text_clean = ref_text_clean[ref_text_clean$text != "",]
   ref_text_clean = toupper(as.character(ref_text_clean$text))
   ref_text_clean = lapply(ref_text_clean, trimws)
   return(unlist(ref_text_clean))
 }
 
-#testando a funcao
-ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
-ref_text = gutenberg_download(ref_text_id)
-REF_TEXT_VECTOR = gb_text_to_vector(ref_text)
-
+# Funcao para limpar um texto em string
+# Entrada: String
+# Saida: Vetor de caracteres
 text_to_vector = function(text){
   clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
   text_vector = unlist(strsplit(clean_text, split = "", fixed = TRUE))
   return(text_vector)
 }
 ```
+
+
+```{r, echo=F, include=F}
+
+#Testando as funcoes
+#Gutenbergr
+ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
+ref_text = gutenberg_download(ref_text_id)
+REF_TEXT_VECTOR_GB = gb_text_to_vector(ref_text)
+
+#String 
+test_text = text_to_vector("this is a string with s3v3r4l Spe;i@l chars[]")
+```
+
 
 ## Frequencia de Bigramas
 
@@ -174,7 +188,7 @@ mcmc = function(encoded, key0, reference_freq, nr) {
                 "key_max" = key_max))
 }
 
-nr = 10
+nr = 100
 text = text_to_vector("THIS IS A SIMPLE TEXT TO BE DECRIPTED")
 reference_freq = BIGRAMS_FREQ_REF
 alpha = c(LETTERS, ' ')
@@ -184,6 +198,9 @@ encoded = encode_subs(key_real, text)
 
 key0 = sample(alpha)
 result = mcmc(encoded_text, key0, reference, nr)
+result
+
+decode_subs(result$key_max, encoded)
 
 vec = c("R", "F", "I", "H", "Z", "N", " ", "N", "W", "M", "I", "H", "Y", "Z", " ", "X") 
 funcao_p(vec, reference_freq)
