@@ -7,7 +7,7 @@ bibliography: ref.bibtex
 
 ---
 
-# Implementacao
+# Funcoes de suporte
 
 ## Importar e limpar
 Importar texto e limpar espacos e caracteres especiais: 
@@ -25,9 +25,16 @@ gb_text_to_vector = function(text){
   return(unlist(ref_text_clean))
 }
 
+#testando a funcao
 ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
 ref_text = gutenberg_download(ref_text_id)
 REF_TEXT_VECTOR = gb_text_to_vector(ref_text)
+
+text_to_vector = function(text){
+  clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
+  text_vector = unlist(strsplit(clean_text, split = "", fixed = TRUE))
+  return(text_vector)
+}
 ```
 
 ## Frequencia de Bigramas
@@ -60,7 +67,7 @@ BIGRAMS_FREQ_REF = get_bigrams_freq(REF_BIGRAMS)
 Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequencia de bigramas.
 ```{r}
 # recebe um vetor de characteres e retorna a p de aquilo ser um texto valido.
-funcao_p = function(text_vector){
+funcao_p = function(text_vector, reference_freq){
   decoded_str = paste(unlist(text_vector), collapse='')
   bigrams_decoded = get_bigrams(decoded_str)
   decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded)
@@ -69,10 +76,10 @@ funcao_p = function(text_vector){
   
   #for each bigram, compute its frequency, lookup in reference frequency, add to product
   for (i in 1:length(bigrams_decoded)){
-    bg = as.character(decoded_bigrams_freq[j,1])
+    bg = as.character(decoded_bigrams_freq[i,1])
     if(!is.na(bg)){
       f = bigramr::Bigram2Frequency(bg, decoded_bigrams_freq$bigrams, decoded_bigrams_freq$Freq) + 1
-      r = bigramr::Bigram2Frequency(bg, BIGRAMS_FREQ_REF$bigrams, BIGRAMS_FREQ_REF$Freq) + 1
+      r = bigramr::Bigram2Frequency(bg, reference_freq$bigrams, reference_freq$Freq) + 1
     }else{
       f = r = 1
     }
@@ -100,13 +107,13 @@ Funcoes para encriptar e decriptar pelos diversos metodos: substituicao, transpo
 ```{r}
 # Recebe uma string de texto, vetor com o alfabeto, vetor com a chave
 # Retorna vetor com a string encriptada/decriptada
-encode_subs = function(alpha, key, text_str){
+encode_subs = function(key, text_str, alpha=c(LETTERS, " ")){
   text = unlist(strsplit(text_str, split = "", fixed = TRUE))
   encoded = sapply(text, function(x) key[match(x, alpha)])
   return(encoded)
 }
 
-decode_subs = function(alpha, key, text_str) {
+decode_subs = function(key, text_str, alpha=c(LETTERS, " ")) {
   text = unlist(strsplit(text_str, split = "", fixed = TRUE))
   decoded = sapply(text, function(x) alpha[match(x, key)])
   return(decoded)
@@ -116,17 +123,71 @@ text_str = 'OI PESSOAL'
 alpha = c(LETTERS, " ")
 key = sample(alpha)
 
-encoded = encode_subs(alpha, key, text_str)
-decoded = decode_subs(alpha, key, unlist(encoded))
+encoded = encode_subs(key, text_str)
+decoded = decode_subs(key, unlist(encoded))
 
 ```
 
 
-### MCMC 
+# MCMC 
+
 
 ```{r}
 ## Entrada: texto encriptado 
 ## Saida: chave com maior f(x), valor de f(x)
+
+# proposta 1: apenas gerar uma cifra aleatoria do alfabeto
+proposal1 = function(){
+  alpha = c(LETTERS, " ")
+  key = sample(alpha)
+  return(key)
+}
+
+prob_accept=function(x_old, x_new, reference_freq){
+   return(min(funcao_p(x_new, reference_freq)/funcao_p(x_old, reference_freq), 1))
+}
+
+
+mcmc = function(encoded, key0, reference_freq, nr) {
+  
+  f_max = 0
+  key_max = key0
+  
+  for (i in 1:nr){
+    key_old = key0
+    decoded_old = decode_subs(key_old, encoded)
+    key_new = proposal1()
+    decoded_new = decode_subs(key_new, encoded)
+    
+    if(runif(1)<prob_accept(key_old, key_new, reference_freq)){
+      f_new = funcao_p(decoded_new, reference_freq)
+      print(length(f_new))
+      if(length(f_new) > 0) {
+        if (f_new > f_max){
+          f_max = f_new
+          key_max = key_new
+        }  
+      }
+    }
+  }
+  return (list ("fmax" = f_max, 
+                "key_max" = key_max))
+}
+
+nr = 10
+text = text_to_vector("THIS IS A SIMPLE TEXT TO BE DECRIPTED")
+reference_freq = BIGRAMS_FREQ_REF
+alpha = c(LETTERS, ' ')
+key_real = sample(alpha)
+
+encoded = encode_subs(key_real, text)
+
+key0 = sample(alpha)
+result = mcmc(encoded_text, key0, reference, nr)
+
+vec = c("R", "F", "I", "H", "Z", "N", " ", "N", "W", "M", "I", "H", "Y", "Z", " ", "X") 
+funcao_p(vec, reference_freq)
+
 ```
 
 
