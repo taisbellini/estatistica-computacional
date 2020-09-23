@@ -13,47 +13,47 @@ bibliography: ref.bibtex
 Importar texto e limpar espacos e caracteres especiais: 
 
 ```{r import, message=FALSE, warning=FALSE}
-if (!require(gutenbergr)) install.packages("gutenbergr")
-library(gutenbergr)
-
-# Funcao para limpar um texto baixado pela lib gutenbergr
+# Funcao para transformar texto baixado pela lib gutenbergr em string
 # Entrada: texto no formato da biblioteca gutenbergr
 # Saida: vetor de strings
-gb_text_to_vector = function(gb_text){
-  ref_text_clean = as.data.frame(gsub("[[:punct:]]|[0-9]*", "", as.matrix(gb_text)))
-  ref_text_clean = ref_text_clean[ref_text_clean$text != "",]
-  ref_text_clean = toupper(as.character(ref_text_clean$text))
-  ref_text_clean = lapply(ref_text_clean, trimws)
-  return(unlist(ref_text_clean))
+gb_text_to_string = function(gb_text){
+  ref_str = paste(trimws(unlist(gb_text$text)), collapse=" ")
+  return(ref_str)
 }
+
+vector_to_string = function(vector){
+  return(paste(unlist(vector), collapse=""))
+}
+  
 
 # Funcao para limpar um texto em string
 # Entrada: String
-# Saida: Vetor de caracteres
-text_to_vector = function(text){
+# Saida: String
+clean_text = function(text){
   clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
-  text_vector = unlist(strsplit(clean_text, split = "", fixed = TRUE))
-  return(text_vector)
+  return(clean_text)
 }
 ```
 
 
 ```{r, echo=F, include=F}
+if (!require(gutenbergr)) install.packages("gutenbergr")
+library(gutenbergr)
 
 #Testando as funcoes
-#Gutenbergr
+#Get Gutenbergr text
 ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
-ref_text = gutenberg_download(ref_text_id)
-REF_TEXT_VECTOR_GB = gb_text_to_vector(ref_text)
+ref_text_vector = gutenberg_download(ref_text_id)
+ref_text_string = gb_text_to_string(ref_text_vector)
 
 #String 
-test_text = text_to_vector("this is a string with s3v3r4l Spe;i@l chars[]")
+reference_text = clean_text(ref_text_string)
 ```
 
 
 ## Frequencia de Bigramas
 
-Criar bigramas de caracteres a partir do texto referencia e gerar tabela de frequencia. Manter as frases separadas ao inves de fazer palavra por palavra, pois consideramos que os bigramas com espaco sao relevantes para a conta. Ex: palavras que terminam com A podem ser mais frequentes do que palavras que terminam por I, portanto o bigrama A<space> é relevante. 
+Criar bigramas de caracteres a partir do texto referencia e gerar tabela de frequencia. Os bigramas com espaco sao relevantes para a conta. Ex: palavras que terminam com A podem ser mais frequentes do que palavras que terminam por I, portanto o bigrama A<space> é relevante. 
 ```{r}
 if (!require(stringr)) install.packages("stringr")
 library("stringr")
@@ -61,54 +61,53 @@ library(devtools)
 
 install_github("diogo-almeida/bigramr")
 
+# Funcao para separar o texto em bigramas
+# Entrada: vetor de strings ou string
+# Saida: vetor de bigramas
 get_bigrams = function(text_vector){
   bigrams = bigramr::ConvertStrings2Bigrams(text_vector)
   return(unlist(bigrams))
 }
 
+#Funcao para gerar a tabela de frequencia dos bigramas
+#Entrada: vetor de bigramas
+#Saida: data frame de frequencias
 get_bigrams_freq = function(bigrams){
   return(as.data.frame(table(bigrams)))
-
 }
 
-REF_BIGRAMS = get_bigrams(REF_TEXT_VECTOR)
-BIGRAMS_FREQ_REF = get_bigrams_freq(REF_BIGRAMS)
 ```
 
 
-## Funcao p 
 
-Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequencia de bigramas.
 ```{r}
-# recebe um vetor de characteres e retorna a p de aquilo ser um texto valido.
-funcao_p = function(text_vector, reference_freq){
-  decoded_str = paste(unlist(text_vector), collapse='')
-  bigrams_decoded = get_bigrams(decoded_str)
-  decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded)
-  
-  p_result = 1
-  
-  #for each bigram, compute its frequency, lookup in reference frequency, add to product
-  for (i in 1:length(bigrams_decoded)){
-    bg = as.character(decoded_bigrams_freq[i,1])
-    if(!is.na(bg)){
-      f = bigramr::Bigram2Frequency(bg, decoded_bigrams_freq$bigrams, decoded_bigrams_freq$Freq) + 1
-      r = bigramr::Bigram2Frequency(bg, reference_freq$bigrams, reference_freq$Freq) + 1
-    }else{
-      f = r = 1
-    }
-    p_result = p_result*(r^f)
-  }
-  return (p_result)
+#Testando as funcoes e gerando bigramas referencia
+# Gutenbergr
+
+#Separar o texto em pedacoes para nao quebrar a funcao get_bigrams()
+sst <- strsplit(reference_text, "")[[1]]
+REF_BIGRAMS = character(length(sst)-1)
+chunk = 1
+for (i in 1:10){
+  out <- paste0(sst[chunk:(chunk+ (length(sst)/100) - 1)])
+  ref = vector_to_string(out)
+  bigrams = get_bigrams(ref)
+  unname(bigrams)
+  REF_BIGRAMS = c(REF_BIGRAMS, bigrams)
+  chunk = chunk + (length(sst)/100)
 }
 
-# testar a funcao
-text_str = 'OI PESSOAL TUDO BEM COMO ESTAO'
-alpha = c(LETTERS, " ")
-key = sample(alpha)
-encoded = encode_subs(alpha, key, text_str)
-decoded = decode_subs(alpha, key, unlist(encoded))
-funcao_p(decoded)
+```
+
+
+```{r}
+accuracy = function(key1, key2){
+  count = 0
+  for (i in 1:length(key2)){
+    if(key1[i] == key2[i]) count = count + 1
+  }
+  return(count/length(key2))
+}
 ```
 
 
@@ -145,6 +144,43 @@ decoded = decode_subs(key, unlist(encoded))
 
 # MCMC 
 
+## Funcao p 
+
+Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequencia de bigramas.
+```{r}
+# recebe um vetor de characteres e retorna a p de aquilo ser um texto valido.
+funcao_p = function(text_vector, reference_freq){
+  decoded_str = paste(unlist(text_vector), collapse='')
+  bigrams_decoded = get_bigrams(decoded_str)
+  decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded)
+  
+  p_result = 1
+  
+  #for each bigram, compute its frequency, lookup in reference frequency, add to product
+  for (i in 1:length(bigrams_decoded)){
+    bg = as.character(decoded_bigrams_freq[i,1])
+    f = decoded_bigrams_freq[i,2]
+    if(!is.na(bg)){
+      r = bigramr::Bigram2Frequency(bg, reference_freq$bigrams, reference_freq$Freq)
+      if (length(r) == 0) r = 1
+    }else{
+      f = r = 1
+    }
+    p_result = p_result*(r^f)
+  }
+  return (p_result)
+}
+
+# testar a funcao
+text_str = 'OI PESSOAL TUDO BEM COMO ESTAO'
+alpha = c(LETTERS, " ")
+key = sample(alpha)
+encoded = encode_subs(alpha, key, text_str)
+decoded = decode_subs(alpha, key, unlist(encoded))
+funcao_p(decoded)
+```
+
+
 
 ```{r}
 ## Entrada: texto encriptado 
@@ -175,7 +211,6 @@ mcmc = function(encoded, key0, reference_freq, nr) {
     
     if(runif(1)<prob_accept(key_old, key_new, reference_freq)){
       f_new = funcao_p(decoded_new, reference_freq)
-      print(length(f_new))
       if(length(f_new) > 0) {
         if (f_new > f_max){
           f_max = f_new
@@ -188,19 +223,23 @@ mcmc = function(encoded, key0, reference_freq, nr) {
                 "key_max" = key_max))
 }
 
-nr = 100
-text = text_to_vector("THIS IS A SIMPLE TEXT TO BE DECRIPTED")
-reference_freq = BIGRAMS_FREQ_REF
+nr = 10000
+raw_text = "THIS IS A SIMPLE TEXT TO BE DECRIPTED"
+text = strsplit(raw_text, "")[[1]]
+reference_freq = get_bigrams_freq(REF_BIGRAMS)
 alpha = c(LETTERS, ' ')
 key_real = sample(alpha)
 
 encoded = encode_subs(key_real, text)
-
 key0 = sample(alpha)
-result = mcmc(encoded_text, key0, reference, nr)
+
+result = mcmc(encoded, key0, reference_freq, nr)
 result
 
-decode_subs(result$key_max, encoded)
+accuracy_key = accuracy(key_real, result$key_max)
+
+dec = decode_subs(result$key_max, encoded)
+accuracy_text = accuracy(text, dec)
 
 vec = c("R", "F", "I", "H", "Z", "N", " ", "N", "W", "M", "I", "H", "Y", "Z", " ", "X") 
 funcao_p(vec, reference_freq)
