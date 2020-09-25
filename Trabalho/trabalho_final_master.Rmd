@@ -47,7 +47,10 @@ ref_text_vector = gutenberg_download(ref_text_id)
 ref_text_string = gb_text_to_string(ref_text_vector)
 
 #String 
-reference_text = clean_text(ref_text_string)
+ref_txt = readLines('war_and_piece.txt')
+reference_text = clean_text(ref_txt)
+reference_text = reference_text[reference_text != ""]
+reference_text = reference_text[length(reference_text) >1]
 ```
 
 
@@ -64,9 +67,15 @@ install_github("diogo-almeida/bigramr")
 # Funcao para separar o texto em bigramas
 # Entrada: vetor de strings ou string
 # Saida: vetor de bigramas
-get_bigrams = function(text_vector){
+get_bigrams_from_text = function(text_vector){
   bigrams = bigramr::ConvertStrings2Bigrams(text_vector)
-  return(unlist(bigrams))
+  bigrams = unlist(bigrams)
+  return(unname(bigrams))
+}
+
+get_default_bigrams_freq = function(){
+  bigrams = bigramr::bigram.frequencies
+  return(bigrams)
 }
 
 #Funcao para gerar a tabela de frequencia dos bigramas
@@ -82,21 +91,9 @@ get_bigrams_freq = function(bigrams){
 
 ```{r}
 #Testando as funcoes e gerando bigramas referencia
-# Gutenbergr
 
 #Separar o texto em pedacoes para nao quebrar a funcao get_bigrams()
-sst <- strsplit(reference_text, "")[[1]]
-REF_BIGRAMS = character(length(sst)-1)
-chunk = 1
-for (i in 1:10){
-  out <- paste0(sst[chunk:(chunk+ (length(sst)/100) - 1)])
-  ref = vector_to_string(out)
-  bigrams = get_bigrams(ref)
-  unname(bigrams)
-  REF_BIGRAMS = c(REF_BIGRAMS, bigrams)
-  chunk = chunk + (length(sst)/100)
-}
-
+BIGRAMS_REF = get_bigrams_from_text(reference_text)
 ```
 
 
@@ -132,13 +129,6 @@ decode_subs = function(key, text_str, alpha=c(LETTERS, " ")) {
   return(decoded)
 }
 
-text_str = 'OI PESSOAL'
-alpha = c(LETTERS, " ")
-key = sample(alpha)
-
-encoded = encode_subs(key, text_str)
-decoded = decode_subs(key, unlist(encoded))
-
 ```
 
 
@@ -149,35 +139,35 @@ decoded = decode_subs(key, unlist(encoded))
 Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequencia de bigramas.
 ```{r}
 # recebe um vetor de characteres e retorna a p de aquilo ser um texto valido.
-funcao_p = function(text_vector, reference_freq){
-  decoded_str = paste(unlist(text_vector), collapse='')
-  bigrams_decoded = get_bigrams(decoded_str)
+funcao_p = function(encoded_text, reference_bigrams, reference_freq){
+  decoded_str = paste(unlist(encoded_text), collapse='')
+  bigrams_decoded = get_bigrams_from_text(decoded_str)
   decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded)
   
   p_result = 1
   
   #for each bigram, compute its frequency, lookup in reference frequency, add to product
-  for (i in 1:length(bigrams_decoded)){
+  for (i in 1:(length(bigrams_decoded)-1)){
     bg = as.character(decoded_bigrams_freq[i,1])
     f = decoded_bigrams_freq[i,2]
-    if(!is.na(bg)){
-      r = bigramr::Bigram2Frequency(bg, reference_freq$bigrams, reference_freq$Freq)
-      if (length(r) == 0) r = 1
-    }else{
-      f = r = 1
-    }
+    r = bigramr::Bigram2Frequency(bg, reference_bigrams, reference_freq)
+    if (length(r) == 0) r = 1
     p_result = p_result*(r^f)
   }
   return (p_result)
 }
 
 # testar a funcao
-text_str = 'OI PESSOAL TUDO BEM COMO ESTAO'
+reference = get_bigrams_freq(BIGRAMS_REF)
+text_str = 'THIS IS A TEXT TO BE ENCRYPTED'
 alpha = c(LETTERS, " ")
 key = sample(alpha)
-encoded = encode_subs(alpha, key, text_str)
-decoded = decode_subs(alpha, key, unlist(encoded))
-funcao_p(decoded)
+encoded = encode_subs(key, text_str)
+key_test = sample(alpha)
+decoded = decode_subs(key_test, unlist(encoded))
+decoded_right = decode_subs(key, unlist(encoded))
+funcao_p(decoded, reference$bigrams, reference$Freq)
+funcao_p(decoded_right, reference$bigrams, reference$Freq)
 ```
 
 
@@ -187,18 +177,19 @@ funcao_p(decoded)
 ## Saida: chave com maior f(x), valor de f(x)
 
 # proposta 1: apenas gerar uma cifra aleatoria do alfabeto
-proposal1 = function(){
-  alpha = c(LETTERS, " ")
-  key = sample(alpha)
-  return(key)
+proposal1 = function(key){
+  swap_index = sample(1:length(key), 2)
+  new_key = key
+  new_key[swap_index[1]] = key[swap_index[2]]
+  new_key[swap_index[2]] = key[swap_index[1]]
+  return(new_key)
 }
 
-prob_accept=function(x_old, x_new, reference_freq){
-   return(min(funcao_p(x_new, reference_freq)/funcao_p(x_old, reference_freq), 1))
+prob_accept=function(x_old, x_new, reference_bigrams, reference_freq){
+   return(min(funcao_p(x_new, reference_bigrams, reference_freq)/funcao_p(x_old, reference_bigrams, reference_freq), 1))
 }
 
-
-mcmc = function(encoded, key0, reference_freq, nr) {
+mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
   
   f_max = 0
   key_max = key0
@@ -206,11 +197,11 @@ mcmc = function(encoded, key0, reference_freq, nr) {
   for (i in 1:nr){
     key_old = key0
     decoded_old = decode_subs(key_old, encoded)
-    key_new = proposal1()
+    key_new = proposal1(key_old)
     decoded_new = decode_subs(key_new, encoded)
     
-    if(runif(1)<prob_accept(key_old, key_new, reference_freq)){
-      f_new = funcao_p(decoded_new, reference_freq)
+    if(runif(1)<prob_accept(key_old, key_new, reference_bigrams, reference_freq)){
+      f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
       if(length(f_new) > 0) {
         if (f_new > f_max){
           f_max = f_new
@@ -223,17 +214,16 @@ mcmc = function(encoded, key0, reference_freq, nr) {
                 "key_max" = key_max))
 }
 
-nr = 10000
-raw_text = "THIS IS A SIMPLE TEXT TO BE DECRIPTED"
+nr = 1000
+raw_text = "THIS "
 text = strsplit(raw_text, "")[[1]]
-reference_freq = get_bigrams_freq(REF_BIGRAMS)
 alpha = c(LETTERS, ' ')
 key_real = sample(alpha)
 
 encoded = encode_subs(key_real, text)
 key0 = sample(alpha)
 
-result = mcmc(encoded, key0, reference_freq, nr)
+result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr)
 result
 
 accuracy_key = accuracy(key_real, result$key_max)
@@ -241,12 +231,14 @@ accuracy_key = accuracy(key_real, result$key_max)
 dec = decode_subs(result$key_max, encoded)
 accuracy_text = accuracy(text, dec)
 
-vec = c("R", "F", "I", "H", "Z", "N", " ", "N", "W", "M", "I", "H", "Y", "Z", " ", "X") 
-funcao_p(vec, reference_freq)
-
 ```
 
 
+#Notas
+
+- guardar a taxa de aceitacao
+- implementar proposta como a do artigo
+- implementar o gerador de bigramas na mao para tentar mais eficiencia
 
 # Texto
 
