@@ -10,9 +10,44 @@ bibliography: ref.bibtex
 # Funcoes de suporte
 
 ## Importar e limpar
-Importar texto e limpar espacos e caracteres especiais: 
+
+O programa recebe um texto no formato .txt e faz a leitura linha a linha.
+As funções abaixo recebem o objeto gerado, limpam números e caracteres especiais e transforma tudo para uppercase. 
 
 ```{r import, message=FALSE, warning=FALSE}
+
+# Funcao para limpar um texto em string
+# Entrada: String
+# Saida: String
+clean_string = function(text){
+  clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
+  return(clean_text)
+}
+
+# Funcao para limpar um texto lido de um txt
+# Entrada: vetor
+# Saida: vetor
+clean_text = function(text){
+  clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
+  clean_text = clean_text[clean_text != ""]
+  clean_text = clean_text[length(clean_text) >1]
+  return(clean_text)
+}
+```
+
+Testando a função:
+```{r}
+#Lendo de um arquivo txt
+ref_txt = readLines('war_and_piece.txt')
+reference_text = clean_text(ref_txt)
+```
+
+
+Temos algumas funções auxiliares para lidar com textos baixados pela biblioteca gutembergr, mas ler diretamente do texto se mostrou mais eficiente.
+```{r, echo=F, include=F}
+if (!require(gutenbergr)) install.packages("gutenbergr")
+library(gutenbergr)
+
 # Funcao para transformar texto baixado pela lib gutenbergr em string
 # Entrada: texto no formato da biblioteca gutenbergr
 # Saida: vetor de strings
@@ -24,33 +59,12 @@ gb_text_to_string = function(gb_text){
 vector_to_string = function(vector){
   return(paste(unlist(vector), collapse=""))
 }
-  
-
-# Funcao para limpar um texto em string
-# Entrada: String
-# Saida: String
-clean_text = function(text){
-  clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
-  return(clean_text)
-}
-```
-
-
-```{r, echo=F, include=F}
-if (!require(gutenbergr)) install.packages("gutenbergr")
-library(gutenbergr)
 
 #Testando as funcoes
 #Get Gutenbergr text
 ref_text_id = gutenberg_works(title == "War and Peace")$gutenberg_id
 ref_text_vector = gutenberg_download(ref_text_id)
 ref_text_string = gb_text_to_string(ref_text_vector)
-
-#String 
-ref_txt = readLines('war_and_piece.txt')
-reference_text = clean_text(ref_txt)
-reference_text = reference_text[reference_text != ""]
-reference_text = reference_text[length(reference_text) >1]
 ```
 
 
@@ -88,7 +102,7 @@ get_bigrams_freq = function(bigrams){
 ```
 
 
-
+Testando a função de gerar os bigramas e salvando a lista de bigramas referência em uma variavel global BIGRAMS_REF.
 ```{r}
 #Testando as funcoes e gerando bigramas referencia
 
@@ -96,13 +110,15 @@ get_bigrams_freq = function(bigrams){
 BIGRAMS_REF = get_bigrams_from_text(reference_text)
 ```
 
-
+Função que calcula a acuracia. Levemente diferente da proposta no artigo. Compara todos os elementos dos dois textos, e retorna os iguais/diferentes.
 ```{r}
 accuracy = function(key1, key2){
   count = 0
   for (i in 1:length(key2)){
     if(key1[i] == key2[i]) count = count + 1
   }
+  print(count)
+  print(length(key2))
   return(count/length(key2))
 }
 ```
@@ -110,10 +126,9 @@ accuracy = function(key1, key2){
 
 ## Encriptar e Decriptar
 
-Funcoes para encriptar e decriptar pelos diversos metodos: substituicao, transposicao, substituicao-transposicao.
-
 ### Substituicao
 
+Funcoes para encriptar e decriptar pelo metodo de substituicao.
 ```{r}
 # Recebe uma string de texto, vetor com o alfabeto, vetor com a chave
 # Retorna vetor com a string encriptada/decriptada
@@ -147,14 +162,14 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
   p_result = 1
   
   #for each bigram, compute its frequency, lookup in reference frequency, add to product
-  for (i in 1:(length(bigrams_decoded)-1)){
+  for (i in 1:(length(decoded_bigrams_freq$bigrams))){
     bg = as.character(decoded_bigrams_freq[i,1])
-    f = decoded_bigrams_freq[i,2]
-    r = bigramr::Bigram2Frequency(bg, reference_bigrams, reference_freq)
+    f = decoded_bigrams_freq[i,2] + 1
+    r = bigramr::Bigram2Frequency(bg, reference_bigrams, reference_freq) + 1
     if (length(r) == 0) r = 1
     p_result = p_result*(r^f)
   }
-  return (p_result)
+  return (log(p_result))
 }
 
 # testar a funcao
@@ -186,13 +201,20 @@ proposal1 = function(key){
 }
 
 prob_accept=function(x_old, x_new, reference_bigrams, reference_freq){
-   return(min(funcao_p(x_new, reference_bigrams, reference_freq)/funcao_p(x_old, reference_bigrams, reference_freq), 1))
+  p_old = funcao_p(x_old, reference_bigrams, reference_freq)
+  p_new = funcao_p(x_new, reference_bigrams, reference_freq)
+  print(p_old)
+  print(p_new)
+  diff = (p_new/p_old)^50
+  print(diff)
+  return(min(diff, 1))
 }
 
 mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
   
   f_max = 0
   key_max = key0
+  accept = 0
   
   for (i in 1:nr){
     key_old = key0
@@ -201,6 +223,7 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
     decoded_new = decode_subs(key_new, encoded)
     
     if(runif(1)<prob_accept(key_old, key_new, reference_bigrams, reference_freq)){
+      accept = accept + 1
       f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
       if(length(f_new) > 0) {
         if (f_new > f_max){
@@ -211,17 +234,18 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
     }
   }
   return (list ("fmax" = f_max, 
-                "key_max" = key_max))
+                "key_max" = key_max,
+                "accept" = accept))
 }
 
-nr = 1000
-raw_text = "THIS "
+nr = 500
+raw_text = "THIS IS A TEXT TO ENCRYPT"
 text = strsplit(raw_text, "")[[1]]
 alpha = c(LETTERS, ' ')
 key_real = sample(alpha)
 
 encoded = encode_subs(key_real, text)
-key0 = sample(alpha)
+key0 = alpha
 
 result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr)
 result
