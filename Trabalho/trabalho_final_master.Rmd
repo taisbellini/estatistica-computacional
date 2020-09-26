@@ -159,17 +159,17 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
   bigrams_decoded = get_bigrams_from_text(decoded_str)
   decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded)
   
-  p_result = 1
+  p_result = 0
   
   #for each bigram, compute its frequency, lookup in reference frequency, add to product
   for (i in 1:(length(decoded_bigrams_freq$bigrams))){
     bg = as.character(decoded_bigrams_freq[i,1])
-    f = decoded_bigrams_freq[i,2] + 1
+    f = decoded_bigrams_freq[i,2]
     r = bigramr::Bigram2Frequency(bg, reference_bigrams, reference_freq) + 1
     if (length(r) == 0) r = 1
-    p_result = p_result*(r^f)
+    p_result = p_result + log(r^f)
   }
-  return (log(p_result))
+  return (p_result)
 }
 
 # testar a funcao
@@ -203,32 +203,30 @@ proposal1 = function(key){
 prob_accept=function(x_old, x_new, reference_bigrams, reference_freq){
   p_old = funcao_p(x_old, reference_bigrams, reference_freq)
   p_new = funcao_p(x_new, reference_bigrams, reference_freq)
-  print(p_old)
-  print(p_new)
-  diff = (p_new/p_old)^50
-  print(diff)
+  diff = (p_new/p_old)^10
   return(min(diff, 1))
 }
 
 mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
   
   f_max = 0
-  key_max = key0
+  key_max = key_old = key0
   accept = 0
   
   for (i in 1:nr){
-    key_old = key0
     decoded_old = decode_subs(key_old, encoded)
     key_new = proposal1(key_old)
     decoded_new = decode_subs(key_new, encoded)
+    prob_accept = prob_accept(key_old, key_new, reference_bigrams, reference_freq)
     
-    if(runif(1)<prob_accept(key_old, key_new, reference_bigrams, reference_freq)){
+    if(runif(1) < prob_accept){
       accept = accept + 1
       f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
       if(length(f_new) > 0) {
         if (f_new > f_max){
           f_max = f_new
           key_max = key_new
+          key_old = key_new
         }  
       }
     }
@@ -238,13 +236,14 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
                 "accept" = accept))
 }
 
-nr = 500
+nr = 5000
 raw_text = "THIS IS A TEXT TO ENCRYPT"
 text = strsplit(raw_text, "")[[1]]
 alpha = c(LETTERS, ' ')
 key_real = sample(alpha)
 
 encoded = encode_subs(key_real, text)
+encoded
 key0 = alpha
 
 result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr)
@@ -253,8 +252,8 @@ result
 accuracy_key = accuracy(key_real, result$key_max)
 
 dec = decode_subs(result$key_max, encoded)
+dec
 accuracy_text = accuracy(text, dec)
-
 ```
 
 
