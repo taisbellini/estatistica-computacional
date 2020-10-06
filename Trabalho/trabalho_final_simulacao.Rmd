@@ -1,0 +1,149 @@
+---
+title: "trabalho_final_simulacao"
+date: "10/5/2020"
+output: html_document
+---
+
+# Funcoes auxiliares
+
+## Funcao MCMC
+
+Aqui vamos definir a funcao que roda o algoritmo MCMC de forma generica recebendo os parametros que iremos variar.
+
+```{r}
+mcmc_sim = function(encoded, key0, reference_bigrams, reference_freq, proposal = 1, nr=10000, p=1) {
+  
+  f_max = 0
+  key_max = key_old = key0
+  accept = 0
+  
+  for (i in 1:nr){
+    decoded_old = decode_subs(key_old, encoded)
+    key_new = proposal_list[[proposal]](key_old)
+    decoded_new = decode_subs(key_new, encoded)
+    prob_accept = prob_accept(key_old, key_new, reference_bigrams, reference_freq, p=p)
+    
+    if(runif(1) < prob_accept){
+      accept = accept + 1
+      f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
+      if(length(f_new) > 0) {
+        if (f_new > f_max){
+          f_max = f_new
+          key_max = key_new
+          key_old = key_new
+        }  
+      }
+    }
+  }
+  return (list ("f_max" = f_max, 
+                "key_max" = key_max,
+                "accept" = accept))
+}
+
+```
+
+## Funcao simulacao
+
+Funcao para rodar n vezes o MCMC e guardar os resultados.
+
+```{r}
+
+# Recebe o numero de vezes que ira rodar o MCMC, o numero de iteracoes que o MCMC tera, o parametro p e a proposta a ser usada.
+f_sim = function(n, nr, p, proposal, text, key_real, reference_bigrams, reference_freq){
+  
+  key_accuracy = numeric(n)
+  text_accuracy = numeric(n)
+  acceptance_rate = numeric(n)
+  f_max = numeric(n)
+  
+  key0 = alpha
+  encoded = encode_subs(key_real, text)
+  text_list = strsplit(text, "")[[1]]
+  
+  for (i in 1:n){
+    result = mcmc_sim(encoded, key0, reference_bigrams, reference_freq, proposal = proposal, nr = nr, p = p)
+    key_accuracy[i] = accuracy(key_real, result$key_max)
+    decoded = decode_subs(result$key_max, encoded)
+    text_accuracy[i] = accuracy(text_list, decoded)
+    acceptance_rate[i] = result$accept/nr
+    f_max[i] = result$f_max
+  }
+  
+  return(
+    list(
+      "key_accuracy" = key_accuracy,
+      "text_accuracy" = text_accuracy,
+      "acceptance_rate" = acceptance_rate,
+      "f_max" = f_max
+    )
+  )
+}
+
+```
+
+# Simulacao 
+
+## Ajustando os parametros
+
+Vamos variar os seguintes parametros para encontrar a combinacao otima: 
+
+#### Proposta 
+*Proposta 1*
+Seleciona duas posicoes da chave e troca elas de lugar.
+
+*Proposta 2*
+Executa a proposta 1 duas vezes.
+
+*Proposta 3*
+Escolhe um n que assume 1, 2 ou 3 aleatoriamente. Executa a proposta 1 n vezes.
+
+#### Parametro p 
+
+Parametro no qual a razao entre a funcao p da chave anterior e da atual sera elavado. 
+p assume: 0.05, 1, 10 e 50
+
+
+#### Iteracoes
+
+Varia o numero de iteracoes do Algoritmo MCMC: 1000, 10000, 50000
+
+Estrutura para salvar resultados: Media e desvio de cada medida de resultado
+```{r}
+param_tuning = expand.grid(1:3, c(0.05, 1, 10, 50), c(1000, 10000, 50000), 1:1, 1:1, 1:1, 1:1, 1:1, 1:1)
+colnames(param_tuning) = c('Proposta', 'p', 'Iteracoes', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+```
+
+Prepara o texto para ser usado como encoded.
+```{r}
+set.seed(205650)
+enc_txt = get_text('pride_and_prejudice.txt')
+enc_txt = clean_text(enc_txt)
+line = sample(1:length(enc_txt), 1)
+enc_string = enc_txt[line]
+```
+
+```{r}
+set.seed(205650)
+n = 100
+key_real = sample(alpha)
+enc_string = strsplit(enc_string, "")[[1]]
+text = enc_string[1:30]
+text = vector_to_string(text)
+
+for (i in 1:2){
+  proposal = param_tuning[i,1]
+  p = param_tuning[i,2]
+  nr = param_tuning[i,3]
+  result = f_sim(n, nr, p, proposal, text, key_real, reference$bigrams, reference$Freq)
+  
+  param_tuning[i,4] = mean(result$key_accuracy)
+  param_tuning[i,5] = sd(result$key_accuracy)
+  param_tuning[i,6] = mean(result$text_accuracy)
+  param_tuning[i,7] = sd(result$text_accuracy)
+  param_tuning[i,8] = mean(result$acceptance_rate)
+  param_tuning[i,9] = sd(result$acceptance_rate)
+  
+}
+
+```
+

@@ -6,7 +6,6 @@ output:
 bibliography: ref.bibtex
 
 ---
-
 # Funcoes de suporte
 
 ## Importar e limpar
@@ -15,6 +14,12 @@ O programa recebe um texto no formato .txt e faz a leitura linha a linha.
 As funções abaixo recebem o objeto gerado, limpam números e caracteres especiais e transforma tudo para uppercase. 
 
 ```{r import, message=FALSE, warning=FALSE}
+
+## Funcao para ler texto em .txt
+get_text = function(path){
+  text = readLines(path)
+  return(text)
+}
 
 # Funcao para limpar um texto em string
 # Entrada: String
@@ -38,7 +43,7 @@ clean_text = function(text){
 Testando a função:
 ```{r}
 #Lendo de um arquivo txt
-ref_txt = readLines('war_and_piece.txt')
+ref_txt = get_text('war_and_piece.txt')
 reference_text = clean_text(ref_txt)
 ```
 
@@ -117,8 +122,6 @@ accuracy = function(key1, key2){
   for (i in 1:length(key2)){
     if(key1[i] == key2[i]) count = count + 1
   }
-  print(count)
-  print(length(key2))
   return(count/length(key2))
 }
 ```
@@ -153,7 +156,7 @@ decode_subs = function(key, text_str, alpha=c(LETTERS, " ")) {
 
 Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequencia de bigramas.
 ```{r}
-# recebe um vetor de characteres e retorna a p de aquilo ser um texto valido.
+# recebe um vetor de caracteres, uma lista de bigramas e uma lista de frequencias  e retorna a probabilidade de aquilo ser um texto valido.
 funcao_p = function(encoded_text, reference_bigrams, reference_freq){
   decoded_str = paste(unlist(encoded_text), collapse='')
   bigrams_decoded = get_bigrams_from_text(decoded_str)
@@ -169,9 +172,15 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
     if (length(r) == 0) r = 1
     p_result = p_result + log(r^f)
   }
+  
   return (p_result)
 }
 
+```
+
+
+Testando a funcao p
+```{r}
 # testar a funcao
 reference = get_bigrams_freq(BIGRAMS_REF)
 text_str = 'THIS IS A TEXT TO BE ENCRYPTED'
@@ -186,28 +195,71 @@ funcao_p(decoded_right, reference$bigrams, reference$Freq)
 ```
 
 
-
+## Propostas
 ```{r}
 ## Entrada: texto encriptado 
 ## Saida: chave com maior f(x), valor de f(x)
 
-# proposta 1: apenas gerar uma cifra aleatoria do alfabeto
+# proposta 1: trocar duas letras aleatorias de lugar
 proposal1 = function(key){
-  swap_index = sample(1:length(key), 2)
+  swap_index = sample(1:length(key), 2, replace = T)
   new_key = key
   new_key[swap_index[1]] = key[swap_index[2]]
   new_key[swap_index[2]] = key[swap_index[1]]
   return(new_key)
 }
 
-prob_accept=function(x_old, x_new, reference_bigrams, reference_freq){
+# proposta 2: trocar quatro letras aleatorias de lugar
+proposal2 = function(key){
+  for (i in 1:2){
+    swap_index = sample(1:length(key), 2, replace = T)
+    new_key = key
+    new_key[swap_index[1]] = key[swap_index[2]]
+    new_key[swap_index[2]] = key[swap_index[1]]
+    key = new_key
+  }
+  return(new_key)
+}
+
+# proposta 2: trocar randomicamente 2, 4 ou 6 letras aleatorias de lugar
+proposal3 = function(key){
+  it = sample(c(1,2,3), 1)
+  for (i in 1:it){
+    swap_index = sample(1:length(key), 2, replace = T)
+    new_key = key
+    new_key[swap_index[1]] = key[swap_index[2]]
+    new_key[swap_index[2]] = key[swap_index[1]]
+    key = new_key
+  }
+  return(new_key)
+}
+
+proposal_list = list(proposal1, proposal2, proposal3)
+
+```
+
+
+## Probabilidade de aceitacao
+
+Funcao para determinar a probabilidade de aceitar uma nova proposta. 
+
+```{r}
+# p eh un parametro de ajuste para buscar uma melhor accepatance rate
+prob_accept=function(x_old, x_new, reference_bigrams, reference_freq, p=1){
   p_old = funcao_p(x_old, reference_bigrams, reference_freq)
   p_new = funcao_p(x_new, reference_bigrams, reference_freq)
-  diff = (p_new/p_old)^10
+  diff = (p_new/p_old)^p
   return(min(diff, 1))
 }
 
-mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr) {
+```
+
+
+## MCMC
+
+Implementacao do algoritmo MCMC.
+```{r}
+mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000) {
   
   f_max = 0
   key_max = key_old = key0
@@ -259,9 +311,6 @@ accuracy_text = accuracy(text, dec)
 
 #Notas
 
-- guardar a taxa de aceitacao
-- implementar proposta como a do artigo
-- implementar o gerador de bigramas na mao para tentar mais eficiencia
 
 # Texto
 
