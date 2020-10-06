@@ -107,11 +107,81 @@ p assume: 0.05, 1, 10 e 50
 
 Varia o numero de iteracoes do Algoritmo MCMC: 1000, 10000, 50000
 
+## Simulacoes
+
+### Proposta
+
+Vamos testar as 3 propostas rodando o mcmc 20 vezes com cada uma e 10000 iteracoes.
+
+```{r}
+resultados_propostas = matrix(nrow = 3, ncol = 7)
+resultados_propostas[,1] = c(1, 2, 3)
+colnames(resultados_propostas) = c('Proposta', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+
+set.seed(205650)
+for (i in 1:nrow(resultados_propostas)){
+  proposal = resultados_propostas[i,1]
+  p = 1
+  nr = 10000
+  n = 20
+  result = f_sim(n, nr, p, proposal, text, key_real, reference$bigrams, reference$Freq)
+  
+  resultados_propostas[i,2] = mean(result$key_accuracy)
+  resultados_propostas[i,3] = sd(result$key_accuracy)
+  resultados_propostas[i,4] = mean(result$text_accuracy)
+  resultados_propostas[i,5] = sd(result$text_accuracy)
+  resultados_propostas[i,6] = mean(result$acceptance_rate)
+  resultados_propostas[i,7] = sd(result$acceptance_rate)
+  
+}
+
+resultados_propostas
+
+```
+
+
+ Proposta Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,]        1    0.05000000 0.04378161          0.090   0.1145038              0.985205        0.003350173
+[2,]        2    0.09814815 0.08085440          0.185   0.1666579              0.976880        0.006654607
+[3,]        3    0.08148148 0.05837548          0.140   0.1182722              0.976990        0.009037518
+
+A proposta escolhida foi a 2. Observe que a taxa de aceitacao esta muito alta. Vamos ajustar o parametro p para obtermos uma taxa mais adequada.
+
+### Validando o parametro p
+
+
+```{r}
+resultados_p = matrix(nrow = 5, ncol = 7)
+resultados_p[,1] = c(0.05, 1, 10, 20, 50)
+colnames(resultados_p) = c('p', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+
+set.seed(205650)
+for (i in 1:nrow(resultados_p)){
+  proposal = 3
+  p = resultados_p[,1]
+  nr = 1000
+  n = 20
+  result = f_sim(n, nr, p, proposal, text, key_real, reference$bigrams, reference$Freq)
+  
+  resultados_propostas[i,2] = mean(result$key_accuracy)
+  resultados_propostas[i,3] = sd(result$key_accuracy)
+  resultados_propostas[i,4] = mean(result$text_accuracy)
+  resultados_propostas[i,5] = sd(result$text_accuracy)
+  resultados_propostas[i,6] = mean(result$acceptance_rate)
+  resultados_propostas[i,7] = sd(result$acceptance_rate)
+  
+}
+
+resultados_propostas
+```
+
+
 Estrutura para salvar resultados: Media e desvio de cada medida de resultado
 ```{r}
 param_tuning = expand.grid(1:3, c(0.05, 1, 10, 50), c(1000, 10000, 50000), 1:1, 1:1, 1:1, 1:1, 1:1, 1:1)
 colnames(param_tuning) = c('Proposta', 'p', 'Iteracoes', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
 ```
+
 
 Prepara o texto para ser usado como encoded.
 ```{r}
@@ -122,6 +192,13 @@ line = sample(1:length(enc_txt), 1)
 enc_string = enc_txt[line]
 ```
 
+
+```{r}
+
+```
+
+
+
 ```{r}
 set.seed(205650)
 n = 100
@@ -130,7 +207,7 @@ enc_string = strsplit(enc_string, "")[[1]]
 text = enc_string[1:30]
 text = vector_to_string(text)
 
-for (i in 1:2){
+for (i in 20:36){
   proposal = param_tuning[i,1]
   p = param_tuning[i,2]
   nr = param_tuning[i,3]
