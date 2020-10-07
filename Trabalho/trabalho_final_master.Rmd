@@ -17,7 +17,7 @@ As funções abaixo recebem o objeto gerado, limpam números e caracteres especi
 
 ## Funcao para ler texto em .txt
 get_text = function(path){
-  text = readLines(path)
+  text = readLines(path, encoding = 'UTF-8')
   return(text)
 }
 
@@ -36,6 +36,11 @@ clean_text = function(text){
   clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
   clean_text = clean_text[clean_text != ""]
   clean_text = clean_text[length(clean_text) >1]
+  clean_text = iconv(clean_text, from = "UTF-8", to = "ASCII//TRANSLIT")
+  clean_text = gsub("\"", "", clean_text)
+  clean_text = gsub("'", "", clean_text)
+  clean_text = gsub("-", " ", clean_text)
+  
   return(clean_text)
 }
 ```
@@ -81,7 +86,9 @@ if (!require(stringr)) install.packages("stringr")
 library("stringr")
 library(devtools)
 
-install_github("diogo-almeida/bigramr")
+#install_github("diogo-almeida/bigramr")
+require(bigramr)
+
 
 # Funcao para separar o texto em bigramas
 # Entrada: vetor de strings ou string
@@ -126,7 +133,6 @@ accuracy = function(key1, key2){
 }
 ```
 
-
 ## Encriptar e Decriptar
 
 ### Substituicao
@@ -157,18 +163,27 @@ decode_subs = function(key, text_str, alpha=c(LETTERS, " ")) {
 Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequencia de bigramas.
 ```{r}
 # recebe um vetor de caracteres, uma lista de bigramas e uma lista de frequencias  e retorna a probabilidade de aquilo ser um texto valido.
+
+#encoded_text = decoded_right
+#reference_bigrams = reference$bigrams
+#reference_freq = reference$Freq
+
 funcao_p = function(encoded_text, reference_bigrams, reference_freq){
-  decoded_str = paste(unlist(encoded_text), collapse='')
-  bigrams_decoded = get_bigrams_from_text(decoded_str)
-  decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded)
+  
+  decoded_str = paste(unlist(encoded_text), collapse='') #texto
+  bigrams_decoded = get_bigrams_from_text(decoded_str) #pega os bigramas
+  decoded_bigrams_freq = get_bigrams_freq(bigrams_decoded) #conta a frequencia
   
   p_result = 0
   
   #for each bigram, compute its frequency, lookup in reference frequency, add to product
-  for (i in 1:(length(decoded_bigrams_freq$bigrams))){
-    bg = as.character(decoded_bigrams_freq[i,1])
-    f = decoded_bigrams_freq[i,2]
+  for (i in 1:(length(decoded_bigrams_freq$bigrams))){ #olhar cada bigrama
+    
+    bg = as.character(decoded_bigrams_freq[i,1]) #bigrama i
+    f = decoded_bigrams_freq[i,2] #frequencia do bigrama i
+    
     r = bigramr::Bigram2Frequency(bg, reference_bigrams, reference_freq) + 1
+    
     if (length(r) == 0) r = 1
     p_result = p_result + log(r^f)
   }
@@ -185,11 +200,12 @@ Testando a funcao p
 reference = get_bigrams_freq(BIGRAMS_REF)
 text_str = 'THIS IS A TEXT TO BE ENCRYPTED'
 alpha = c(LETTERS, " ")
-key = sample(alpha)
-encoded = encode_subs(key, text_str)
-key_test = sample(alpha)
-decoded = decode_subs(key_test, unlist(encoded))
-decoded_right = decode_subs(key, unlist(encoded))
+key = sample(alpha) #chave verdadeira
+encoded = encode_subs(key, text_str) # texto encriptado
+key_test = sample(alpha) # chave x
+decoded = decode_subs(key_test, unlist(encoded)) #texto descriptado de acordo com a chave x
+decoded_right = decode_subs(key, unlist(encoded)) #texto descriptado com a chave certa
+
 funcao_p(decoded, reference$bigrams, reference$Freq)
 funcao_p(decoded_right, reference$bigrams, reference$Freq)
 ```
@@ -221,7 +237,7 @@ proposal2 = function(key){
   return(new_key)
 }
 
-# proposta 2: trocar randomicamente 2, 4 ou 6 letras aleatorias de lugar
+# proposta 3: trocar randomicamente 2, 4 ou 6 letras aleatorias de lugar
 proposal3 = function(key){
   it = sample(c(1,2,3), 1)
   for (i in 1:it){
@@ -245,11 +261,14 @@ Funcao para determinar a probabilidade de aceitar uma nova proposta.
 
 ```{r}
 # p eh un parametro de ajuste para buscar uma melhor accepatance rate
-prob_accept=function(x_old, x_new, reference_bigrams, reference_freq, p=1){
+prob_accept = function(x_old, x_new, reference_bigrams, reference_freq, p = 10){
   p_old = funcao_p(x_old, reference_bigrams, reference_freq)
   p_new = funcao_p(x_new, reference_bigrams, reference_freq)
-  diff = (p_new/p_old)^p
-  return(min(diff, 1))
+  diff = exp(p_new - p_old)^p
+  
+  prob = min(diff, 1) #teste
+  
+  return(prob)
 }
 
 ```
@@ -282,6 +301,7 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000) {
         }  
       }
     }
+    print(i) # tirar
   }
   return (list ("fmax" = f_max, 
                 "key_max" = key_max,
@@ -298,14 +318,17 @@ encoded = encode_subs(key_real, text)
 encoded
 key0 = alpha
 
-result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr)
+result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr = 50000)
 result
 
 accuracy_key = accuracy(key_real, result$key_max)
+accuracy_key
 
 dec = decode_subs(result$key_max, encoded)
 dec
+
 accuracy_text = accuracy(text, dec)
+accuracy_text
 ```
 
 
