@@ -185,7 +185,7 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
     r = bigramr::Bigram2Frequency(bg, reference_bigrams, reference_freq) + 1
     
     if (length(r) == 0) r = 1
-    p_result = p_result + log(r^f)
+    p_result = p_result + f*log(r)
   }
   
   return (p_result)
@@ -278,7 +278,7 @@ prob_accept = function(x_old, x_new, reference_bigrams, reference_freq, p = 10){
 
 Implementacao do algoritmo MCMC.
 ```{r}
-mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000) {
+mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000, p = 10) {
   
   f_max = 0
   key_max = key_old = key0
@@ -288,7 +288,7 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000) {
     decoded_old = decode_subs(key_old, encoded)
     key_new = proposal1(key_old)
     decoded_new = decode_subs(key_new, encoded)
-    prob_accept = prob_accept(key_old, key_new, reference_bigrams, reference_freq)
+    prob_accept = prob_accept(key_old, key_new, reference_bigrams, reference_freq, p=p)
     
     if(runif(1) < prob_accept){
       accept = accept + 1
@@ -301,14 +301,13 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000) {
         }  
       }
     }
-    print(i) # tirar
   }
   return (list ("fmax" = f_max, 
                 "key_max" = key_max,
                 "accept" = accept))
 }
 
-nr = 5000
+nr = 50000
 raw_text = "THIS IS A TEXT TO ENCRYPT"
 text = strsplit(raw_text, "")[[1]]
 alpha = c(LETTERS, ' ')
@@ -318,7 +317,7 @@ encoded = encode_subs(key_real, text)
 encoded
 key0 = alpha
 
-result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr = 50000)
+result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr = 50000, p=50)
 result
 
 accuracy_key = accuracy(key_real, result$key_max)
@@ -329,10 +328,69 @@ dec
 
 accuracy_text = accuracy(text, dec)
 accuracy_text
+
+acceptance_rate = result$accept/nr
+acceptance_rate
 ```
 
 
+p=10:
+
+$fmax
+[1] 236.6938
+
+$key_max
+ [1] "D" "B" "H" "U" "P" "A" "G" "W" "X" "J" " " "K" "M" "F" "O" "L" "Q" "R" "T" "V" "I" "Y" "S" "E" "C" "Z" "N"
+
+$accept
+[1] 44991
+
+accuracy_key = accuracy(key_real, result$key_max)
+accuracy_key
+[1] 0.1111111
+dec = decode_subs(result$key_max, encoded)
+dec
+  T   H   I   S       I   S       A       T   E   X   T       T   O       E   N   C   R   Y   P   T 
+"E" "A" "T" "O" " " "T" "O" " " "D" " " "E" "S" "H" "E" " " "E" "N" " " "S" "I" "C" "L" "F" "R" "E" 
+accuracy_text = accuracy(text, dec)
+accuracy_text
+[1] 0.24
+acceptance_rate = result$accept/nr
+acceptance_rate
+[1] 0.89982
+
+p = 20
+
+$fmax
+[1] 240.8122
+
+$key_max
+ [1] "F" "B" "L" "K" "H" "E" "M" "U" "V" "J" "G" "Y" "X" "O" "T" "C" "Q" "A" "W" "N" " " "I" "D" "Z" "R" "S" "P"
+
+$accept
+[1] 35387
+
+> accuracy_key = accuracy(key_real, result$key_max)
+> accuracy_key
+[1] 0.03703704
+> dec = decode_subs(result$key_max, encoded)
+> dec
+  T   H   I   S       I   S       A       T   E   X   T       T   O       E   N   C   R   Y   P   T 
+" " "W" "I" "N" "T" "I" "N" "T" "H" "T" " " "O" "S" " " "T" " " "A" "T" "O" "M" "E" "D" "R" "Y" " " 
+> accuracy_text = accuracy(text, dec)
+> accuracy_text
+[1] 0.08
+> acceptance_rate = result$accept/nr
+> acceptance_rate
+[1] 0.70774
+
+
+
+
 #Notas
+
+Testar nova funcao_p 
+Testar funcao_p com PIPOWER = 0.25
 
 
 # Texto
