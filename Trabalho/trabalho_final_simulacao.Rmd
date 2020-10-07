@@ -151,30 +151,35 @@ A proposta escolhida foi a 2. Observe que a taxa de aceitacao esta muito alta. V
 
 
 ```{r}
-resultados_p = matrix(nrow = 5, ncol = 7)
-resultados_p[,1] = c(0.05, 1, 10, 20, 50)
+resultados_p = matrix(nrow = 3, ncol = 7)
+resultados_p[,1] = c(50, 20, 1)
 colnames(resultados_p) = c('p', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
 
 set.seed(205650)
 for (i in 1:nrow(resultados_p)){
-  proposal = 3
-  p = resultados_p[,1]
-  nr = 1000
+  proposal = 2
+  p = resultados_p[i,1]
+  nr = 8000
   n = 20
   result = f_sim(n, nr, p, proposal, text, key_real, reference$bigrams, reference$Freq)
   
-  resultados_propostas[i,2] = mean(result$key_accuracy)
-  resultados_propostas[i,3] = sd(result$key_accuracy)
-  resultados_propostas[i,4] = mean(result$text_accuracy)
-  resultados_propostas[i,5] = sd(result$text_accuracy)
-  resultados_propostas[i,6] = mean(result$acceptance_rate)
-  resultados_propostas[i,7] = sd(result$acceptance_rate)
+  resultados_p[i,2] = mean(result$key_accuracy)
+  resultados_p[i,3] = sd(result$key_accuracy)
+  resultados_p[i,4] = mean(result$text_accuracy)
+  resultados_p[i,5] = sd(result$text_accuracy)
+  resultados_p[i,6] = mean(result$acceptance_rate)
+  resultados_p[i,7] = sd(result$acceptance_rate)
   
 }
 
-resultados_propostas
+resultados_p
 ```
 
+
+      p Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,] 50     0.1074074 0.07397654      0.1866667   0.1683772             0.3630875          0.1177849
+[2,] 20            NA         NA             NA          NA                    NA                 NA
+[3,]  1            NA         NA             NA          NA                    NA                 NA
 
 Estrutura para salvar resultados: Media e desvio de cada medida de resultado
 ```{r}
