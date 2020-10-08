@@ -132,10 +132,10 @@ resultados_propostas
 ```
 
 
- Proposta Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
-[1,]        1    0.05000000 0.04378161          0.090   0.1145038              0.985205        0.003350173
-[2,]        2    0.09814815 0.08085440          0.185   0.1666579              0.976880        0.006654607
-[3,]        3    0.08148148 0.05837548          0.140   0.1182722              0.976990        0.009037518
+     Proposta Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,]        1     0.2425926 0.09648729      0.5054688   0.1170668              0.339325        0.007961875
+[2,]        2     0.2500000 0.07959449      0.5187500   0.1430798              0.142500        0.006233863
+[3,]        3     0.2277778 0.12270564      0.4851563   0.1724702              0.182095        0.006491734
 
 A proposta escolhida foi a 2. Observe que a taxa de aceitacao esta muito alta. Vamos ajustar o parametro p para obtermos uma taxa mais adequada.
 
@@ -168,10 +168,44 @@ resultados_p
 ```
 
 
-      p Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
-[1,] 50     0.1074074 0.07397654      0.1866667   0.1683772             0.3630875          0.1177849
-[2,] 20            NA         NA             NA          NA                    NA                 NA
-[3,]  1            NA         NA             NA          NA                    NA                 NA
+       p Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,] 1.5     0.2481481 0.09392799      0.5625000   0.1519135              0.084470        0.005442822
+[2,] 1.0     0.2592593 0.08665150      0.5679688   0.1490336              0.143475        0.006542724
+[3,] 0.5     0.1629630 0.08359824      0.3640625   0.1406798              0.306610        0.006548194
+
+
+### Validando o numero de iteracoes
+
+```{r}
+resultados_it = matrix(nrow = 3, ncol = 7)
+resultados_it[,1] = c(5000, 10000, 50000)
+colnames(resultados_it) = c('it', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+
+set.seed(2056501)
+for (i in 1:nrow(resultados_it)){
+  proposal = 2
+  nr = resultados_it[i,1]
+  p = 1
+  n = 20
+  result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+  
+  resultados_it[i,2] = mean(result$key_accuracy)
+  resultados_it[i,3] = sd(result$key_accuracy)
+  resultados_it[i,4] = mean(result$text_accuracy)
+  resultados_it[i,5] = sd(result$text_accuracy)
+  resultados_it[i,6] = mean(result$acceptance_rate)
+  resultados_it[i,7] = sd(result$acceptance_rate)
+  
+}
+
+resultados_it
+```
+
+        it Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,]  5000     0.2000000 0.08006928      0.4617188  0.15396979              0.146650        0.007505752
+[2,] 10000     0.2518519 0.09354288      0.5375000  0.14913057              0.142320        0.004953956
+[3,] 50000     0.2685185 0.06112440      0.5906250  0.09161494              0.141618        0.003228426
+
 
 Estrutura para salvar resultados: Media e desvio de cada medida de resultado
 ```{r}
