@@ -6,45 +6,9 @@ output: html_document
 
 # Funcoes auxiliares
 
-## Funcao MCMC
-
-Aqui vamos definir a funcao que roda o algoritmo MCMC de forma generica recebendo os parametros que iremos variar.
-
-```{r}
-mcmc_sim = function(encoded, key0, reference_bigrams, reference_freq, proposal = 1, nr=10000, p=1) {
-  
-  f_max = 0
-  key_max = key_old = key0
-  accept = 0
-  
-  for (i in 1:nr){
-    decoded_old = decode_subs(key_old, encoded)
-    key_new = proposal_list[[proposal]](key_old)
-    decoded_new = decode_subs(key_new, encoded)
-    prob_accept = prob_accept(key_old, key_new, reference_bigrams, reference_freq, p=p)
-    
-    if(runif(1) < prob_accept){
-      accept = accept + 1
-      f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
-      if(length(f_new) > 0) {
-        if (f_new > f_max){
-          f_max = f_new
-          key_max = key_new
-          key_old = key_new
-        }  
-      }
-    }
-  }
-  return (list ("f_max" = f_max, 
-                "key_max" = key_max,
-                "accept" = accept))
-}
-
-```
-
 ## Funcao simulacao
 
-Funcao para rodar n vezes o MCMC e guardar os resultados.
+Funcao para rodar n vezes o MCMC (arquivo master) e guardar os resultados.
 
 ```{r}
 
@@ -61,7 +25,7 @@ f_sim = function(n, nr, p, proposal, text, key_real, reference_bigrams, referenc
   text_list = strsplit(text, "")[[1]]
   
   for (i in 1:n){
-    result = mcmc_sim(encoded, key0, reference_bigrams, reference_freq, proposal = proposal, nr = nr, p = p)
+    result = mcmc(encoded, key0, reference_bigrams, reference_freq, proposal = proposal, nr = nr, p = p)
     key_accuracy[i] = accuracy(key_real, result$key_max)
     decoded = decode_subs(result$key_max, encoded)
     text_accuracy[i] = accuracy(text_list, decoded)
@@ -80,6 +44,34 @@ f_sim = function(n, nr, p, proposal, text, key_real, reference_bigrams, referenc
 }
 
 ```
+
+
+Rodando f_sim uma vez:
+
+Prepara o texto para ser usado como encoded.
+```{r}
+enc_txt = get_text('pride_and_prejudice.txt')
+ENC_TXT = clean_text(enc_txt)
+set.seed(205)
+line = sample(1:length(ENC_TXT), 1)
+enc_string = ENC_TXT[line]
+enc_string
+```
+
+
+```{r}
+p=1.5
+n = 5
+nr = 10000
+proposal = 2
+set.seed(205650)
+key_real = sample(alpha)
+text = enc_string
+
+fsim_result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+fsim_result
+```
+
 
 # Simulacao 
 
@@ -100,7 +92,7 @@ Escolhe um n que assume 1, 2 ou 3 aleatoriamente. Executa a proposta 1 n vezes.
 #### Parametro p 
 
 Parametro no qual a razao entre a funcao p da chave anterior e da atual sera elavado. 
-p assume: 0.05, 1, 10 e 50
+p assume: 0.5, 1, 1.5 e 2
 
 
 #### Iteracoes
@@ -124,7 +116,7 @@ for (i in 1:nrow(resultados_propostas)){
   p = 1
   nr = 10000
   n = 20
-  result = f_sim(n, nr, p, proposal, text, key_real, reference$bigrams, reference$Freq)
+  result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
   
   resultados_propostas[i,2] = mean(result$key_accuracy)
   resultados_propostas[i,3] = sd(result$key_accuracy)
@@ -152,16 +144,16 @@ A proposta escolhida foi a 2. Observe que a taxa de aceitacao esta muito alta. V
 
 ```{r}
 resultados_p = matrix(nrow = 3, ncol = 7)
-resultados_p[,1] = c(50, 20, 1)
+resultados_p[,1] = c(1.5, 1, 0.5)
 colnames(resultados_p) = c('p', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
 
 set.seed(205650)
 for (i in 1:nrow(resultados_p)){
   proposal = 2
   p = resultados_p[i,1]
-  nr = 8000
+  nr = 10000
   n = 20
-  result = f_sim(n, nr, p, proposal, text, key_real, reference$bigrams, reference$Freq)
+  result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
   
   resultados_p[i,2] = mean(result$key_accuracy)
   resultados_p[i,3] = sd(result$key_accuracy)
@@ -185,21 +177,6 @@ Estrutura para salvar resultados: Media e desvio de cada medida de resultado
 ```{r}
 param_tuning = expand.grid(1:3, c(0.05, 1, 10, 50), c(1000, 10000, 50000), 1:1, 1:1, 1:1, 1:1, 1:1, 1:1)
 colnames(param_tuning) = c('Proposta', 'p', 'Iteracoes', 'Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
-```
-
-
-Prepara o texto para ser usado como encoded.
-```{r}
-set.seed(205650)
-enc_txt = get_text('pride_and_prejudice.txt')
-enc_txt = clean_text(enc_txt)
-line = sample(1:length(enc_txt), 1)
-enc_string = enc_txt[line]
-```
-
-
-```{r}
-
 ```
 
 
