@@ -40,7 +40,7 @@ clean_text = function(text){
   clean_text = gsub("\"", "", clean_text)
   clean_text = gsub("'", "", clean_text)
   clean_text = gsub("-", " ", clean_text)
-  
+  clean_text = clean_text[length(clean_text) >1]
   return(clean_text)
 }
 ```
@@ -49,7 +49,7 @@ Testando a função:
 ```{r}
 #Lendo de um arquivo txt
 ref_txt = get_text('war_and_piece.txt')
-reference_text = clean_text(ref_txt)
+REFERENCE_TEXT = clean_text(ref_txt)
 ```
 
 
@@ -119,11 +119,12 @@ Testando a função de gerar os bigramas e salvando a lista de bigramas referên
 #Testando as funcoes e gerando bigramas referencia
 
 #Separar o texto em pedacoes para nao quebrar a funcao get_bigrams()
-BIGRAMS_REF = get_bigrams_from_text(reference_text)
+BIGRAMS_REF = get_bigrams_from_text(REFERENCE_TEXT)
 ```
 
 Função que calcula a acuracia. Levemente diferente da proposta no artigo. Compara todos os elementos dos dois textos, e retorna os iguais/diferentes.
 ```{r}
+#Entrada: dois vetores de caracteres
 accuracy = function(key1, key2){
   count = 0
   for (i in 1:length(key2)){
@@ -188,7 +189,7 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
     p_result = p_result + f*log(r)
   }
   
-  return (p_result)
+  return (p_result*0.25) # multiplicador da implementacao dos autores do artigo
 }
 
 ```
@@ -197,7 +198,7 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
 Testando a funcao p
 ```{r}
 # testar a funcao
-reference = get_bigrams_freq(BIGRAMS_REF)
+REFERENCE_FREQUENCY = get_bigrams_freq(BIGRAMS_REF)
 text_str = 'THIS IS A TEXT TO BE ENCRYPTED'
 alpha = c(LETTERS, " ")
 key = sample(alpha) #chave verdadeira
@@ -206,8 +207,8 @@ key_test = sample(alpha) # chave x
 decoded = decode_subs(key_test, unlist(encoded)) #texto descriptado de acordo com a chave x
 decoded_right = decode_subs(key, unlist(encoded)) #texto descriptado com a chave certa
 
-funcao_p(decoded, reference$bigrams, reference$Freq)
-funcao_p(decoded_right, reference$bigrams, reference$Freq)
+funcao_p(decoded, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+funcao_p(decoded_right, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
 ```
 
 
@@ -261,10 +262,8 @@ Funcao para determinar a probabilidade de aceitar uma nova proposta.
 
 ```{r}
 # p eh un parametro de ajuste para buscar uma melhor accepatance rate
-prob_accept = function(x_old, x_new, reference_bigrams, reference_freq, p = 10){
-  p_old = funcao_p(x_old, reference_bigrams, reference_freq)
-  p_new = funcao_p(x_new, reference_bigrams, reference_freq)
-  diff = exp(p_new - p_old)^p
+prob_accept = function(pi_old, pi_new, p = 10){
+  diff = exp(pi_new - pi_old)^p
   
   prob = min(diff, 1) #teste
   
@@ -278,55 +277,90 @@ prob_accept = function(x_old, x_new, reference_bigrams, reference_freq, p = 10){
 
 Implementacao do algoritmo MCMC.
 ```{r}
-mcmc = function(encoded, key0, reference_bigrams, reference_freq, nr=10000, p = 10) {
+mcmc = function(encoded, key0, reference_bigrams, reference_freq, proposal=2, nr=10000, p = 1.5) {
   
   f_max = 0
   key_max = key_old = key0
+  decoded_old = decode_subs(key_old, encoded)
   accept = 0
   
   for (i in 1:nr){
-    decoded_old = decode_subs(key_old, encoded)
-    key_new = proposal1(key_old)
+    key_new = proposal_list[[proposal]](key_old)
     decoded_new = decode_subs(key_new, encoded)
-    prob_accept = prob_accept(key_old, key_new, reference_bigrams, reference_freq, p=p)
+    f_old = funcao_p(decoded_old, reference_bigrams, reference_freq)
+    f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
+    
+    prob_accept = prob_accept(f_old, f_new, p=p)
     
     if(runif(1) < prob_accept){
       accept = accept + 1
-      f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
       if(length(f_new) > 0) {
         if (f_new > f_max){
           f_max = f_new
           key_max = key_new
-          key_old = key_new
-        }  
+        }
+        key_old = key_new
+        decoded_old = decoded_new
       }
     }
   }
-  return (list ("fmax" = f_max, 
+  return (list ("f_max" = f_max, 
                 "key_max" = key_max,
                 "accept" = accept))
 }
 
-nr = 50000
-raw_text = "THIS IS A TEXT TO ENCRYPT"
-text = strsplit(raw_text, "")[[1]]
+
+```
+
+
+Rodando o algoritmo MCMC:
+```{r}
+
+# Texto referencia
+ref_txt = get_text('war_and_piece.txt')
+REFERENCE_TEXT = clean_text(ref_txt)
+
+# Bigramas e suas frequencias de referencia
+BIGRAMS_REF = get_bigrams_from_text(REFERENCE_TEXT)
+REFERENCE_FREQUENCY = get_bigrams_freq(BIGRAMS_REF)
+
+
+# Texto a ser codificado e decodificado
+enc_txt = get_text('pride_and_prejudice.txt')
+ENC_TXT = clean_text(enc_txt)
+set.seed(205)
+line = sample(1:length(ENC_TXT), 1)
+enc_string = ENC_TXT[line]
+enc_string
+text = enc_string
+
+# Codificando o texto
 alpha = c(LETTERS, ' ')
+set.seed(205650)
 key_real = sample(alpha)
-
 encoded = encode_subs(key_real, text)
-encoded
-key0 = alpha
 
-result = mcmc(encoded, key0, reference$bigrams, reference$Freq, nr = 50000, p=50)
+
+#Parametros da funcao
+nr = 5000
+key0 = alpha
+proposal = 2
+p = 1
+
+# Rodando o MCMC
+result = mcmc(encoded, key0, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq, proposal = proposal, nr = nr ,p=p)
 result
 
+# Avaliando os resultados
 accuracy_key = accuracy(key_real, result$key_max)
 accuracy_key
 
 dec = decode_subs(result$key_max, encoded)
 dec
 
-accuracy_text = accuracy(text, dec)
+text_list = strsplit(text, "")[[1]]
+
+accuracy_text = accuracy(text_list, dec)
 accuracy_text
 
 acceptance_rate = result$accept/nr
