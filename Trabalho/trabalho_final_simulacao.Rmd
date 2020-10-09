@@ -330,9 +330,10 @@ set.seed(205650)
 line = sample(1:length(DOSTOYEVSKI_ENCODED), 1)
 enc_string = DOSTOYEVSKI_ENCODED[line]
 enc_string
-enc_string = strsplit(enc_string, "")[[1]]
-text = enc_string[1:30]
-text = vector_to_string(text)
+#enc_string = strsplit(enc_string, "")[[1]]
+#text = enc_string[1:30]
+#text = vector_to_string(text)
+text = enc_string
 
 n = 100
 nr = 50000
