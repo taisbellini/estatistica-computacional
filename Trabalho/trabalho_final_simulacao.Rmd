@@ -129,9 +129,9 @@ for (i in 1:nrow(resultados_propostas)){
   resultados_propostas[i,7] = sd(result$acceptance_rate)
   
 }
-
 resultados_propostas
 write.csv2(result, "results_proposta.csv")
+write.csv2(resultados_propostas, "results_proposta_consolidado.csv")
 
 ```
 
@@ -164,7 +164,7 @@ for (i in 1:nrow(resultados_p)){
   p = resultados_p[i,1]
   nr = 10000
   n = 20
-  result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+  result = f_sim(n, nr, p, proposal, text, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
   
   resultados_p[i,2] = mean(result$key_accuracy)
   resultados_p[i,3] = sd(result$key_accuracy)
