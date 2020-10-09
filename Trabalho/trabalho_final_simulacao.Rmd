@@ -13,7 +13,7 @@ Funcao para rodar n vezes o MCMC (arquivo master) e guardar os resultados.
 ```{r}
 
 # Recebe o numero de vezes que ira rodar o MCMC, o numero de iteracoes que o MCMC tera, o parametro p e a proposta a ser usada.
-f_sim = function(n, nr, p, proposal, text, key_real, reference_bigrams, reference_freq){
+f_sim = function(n, nr, p, proposal, text, reference_bigrams, reference_freq){
   
   key_accuracy = numeric(n)
   text_accuracy = numeric(n)
@@ -21,10 +21,12 @@ f_sim = function(n, nr, p, proposal, text, key_real, reference_bigrams, referenc
   f_max = numeric(n)
   
   key0 = alpha
-  encoded = encode_subs(key_real, text)
   text_list = strsplit(text, "")[[1]]
   
   for (i in 1:n){
+    key_real = sample(alpha)
+    encoded = encode_subs(key_real, text)
+    
     result = mcmc(encoded, key0, reference_bigrams, reference_freq, proposal = proposal, nr = nr, p = p)
     key_accuracy[i] = accuracy(key_real, result$key_max)
     decoded = decode_subs(result$key_max, encoded)
@@ -56,19 +58,20 @@ set.seed(205)
 line = sample(1:length(ENC_TXT), 1)
 enc_string = ENC_TXT[line]
 enc_string
+text= enc_string
 ```
 
 
 ```{r}
 p=1.5
 n = 5
-nr = 10000
+nr = 100
 proposal = 2
 set.seed(205650)
 key_real = sample(alpha)
 text = enc_string
 
-fsim_result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+fsim_result = f_sim(n, nr, p, proposal, text, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
 fsim_result
 ```
 
@@ -116,7 +119,7 @@ for (i in 1:nrow(resultados_propostas)){
   p = 1
   nr = 10000
   n = 20
-  result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+  result = f_sim(n, nr, p, proposal, text, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
   
   resultados_propostas[i,2] = mean(result$key_accuracy)
   resultados_propostas[i,3] = sd(result$key_accuracy)
@@ -128,6 +131,7 @@ for (i in 1:nrow(resultados_propostas)){
 }
 
 resultados_propostas
+write.csv2(result, "results_proposta.csv")
 
 ```
 
@@ -138,6 +142,13 @@ resultados_propostas
 [3,]        3     0.2277778 0.12270564      0.4851563   0.1724702              0.182095        0.006491734
 
 A proposta escolhida foi a 2. Observe que a taxa de aceitacao esta muito alta. Vamos ajustar o parametro p para obtermos uma taxa mais adequada.
+
+RESULTADO CORRETO:
+
+    Proposta Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,]        1     0.2481481 0.09392799      0.5296875   0.1683551              0.338175        0.007640810
+[2,]        2     0.2055556 0.09109907      0.4664063   0.1700543              0.142340        0.006206567
+[3,]        3     0.2203704 0.06065010      0.4890625   0.1253183              0.183625        0.005608441
 
 ### Validando o parametro p
 
@@ -303,6 +314,8 @@ same_author[1,4] = sd(results_same_author$text_accuracy)
 same_author[1,5] = mean(results_same_author$acceptance_rate)
 same_author[1,6] = sd(results_same_author$acceptance_rate)
 
+results_same_author$text_accuracy
+write.csv2(results_same_author, file = "resultado_same_author.csv")
 same_author
 
 ```
