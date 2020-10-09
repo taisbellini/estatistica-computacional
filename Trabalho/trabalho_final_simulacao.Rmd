@@ -185,7 +185,7 @@ set.seed(2056501)
 for (i in 1:nrow(resultados_it)){
   proposal = 2
   nr = resultados_it[i,1]
-  p = 0.5
+  p = 1
   n = 20
   result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
   
@@ -245,4 +245,111 @@ for (i in 1:36){
 }
 
 ```
+
+
+### Resultados Finais
+
+Acima, executamos algumas simulacoes para escolher parametros otimos para o nosso algoritmo. Os parametros preliminarmente escolhidos foram:
+
+p: 1
+it: 50000 ou mais
+proposal: 2 (troca 4 caracteres da chave por vez)
+
+
+Agora, vamos executar a simulacao 100 vezes com alguns cenarios diferentes:
+
+#### Textos em ingles
+
+Testes:
+1) texto ref e texto decriptado em ingles da mesma autora em ingles
+2) texto ref e texto decriptado em ingles de diferentes autores em ingles
+3) mesmo texto ref e decriptado em ingles
+
+```{r}
+same_author = matrix(nrow = 1, ncol = 6)
+colnames(same_author) = c('Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+
+
+# Preparando os dados
+JANEAUSTEN_REFERENCE = clean_text(readLines("pride_and_prejudice.txt"))
+JANEAUSTEN_ENCODED = clean_text(readLines("sense_and_sensibility.txt"))
+
+JANEAUSTEN_REFERENCE_BIGRAMS = get_bigrams_from_text(JANEAUSTEN_REFERENCE)
+
+JANEAUSTEN_REFERENCE_FREQUENCY = get_bigrams_freq(JANEAUSTEN_REFERENCE_BIGRAMS) 
+
+# Escolhe uma linha randomica para decriptar
+set.seed(205650)
+line = sample(1:length(JANEAUSTEN_ENCODED), 1)
+enc_string = JANEAUSTEN_ENCODED[line]
+enc_string
+enc_string = strsplit(enc_string, "")[[1]]
+text = enc_string[1:30]
+text = vector_to_string(text)
+
+n = 100
+nr = 50000
+p = 1
+proposal = 2
+
+key_real = sample(alpha)
+
+results_same_author = f_sim(n, nr, p, proposal, text, key_real, JANEAUSTEN_REFERENCE_FREQUENCY$bigrams, JANEAUSTEN_REFERENCE_FREQUENCY$Freq)
+
+same_author[1,1] = mean(results_same_author$key_accuracy)
+same_author[1,2] = sd(results_same_author$key_accuracy)
+same_author[1,3] = mean(results_same_author$text_accuracy)
+same_author[1,4] = sd(results_same_author$text_accuracy)
+same_author[1,5] = mean(results_same_author$acceptance_rate)
+same_author[1,6] = sd(results_same_author$acceptance_rate)
+
+same_author
+
+```
+
+ Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,]     0.1555556 0.07842946      0.3679688   0.1324346              0.305779        0.003445488
+
+2) Autores diferentes
+
+```{r}
+diff_authors = matrix(nrow = 1, ncol = 6)
+colnames(diff_authors) = c('Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+
+
+# Preparando os dados
+JANEAUSTEN_REFERENCE = clean_text(readLines("pride_and_prejudice.txt"))
+DOSTOYEVSKI_ENCODED = clean_text(readLines("war_and_piece.txt"))
+
+JANEAUSTEN_REFERENCE_BIGRAMS = get_bigrams_from_text(JANEAUSTEN_REFERENCE)
+
+JANEAUSTEN_REFERENCE_FREQUENCY = get_bigrams_freq(JANEAUSTEN_REFERENCE_BIGRAMS) 
+
+# Escolhe uma linha randomica para decriptar
+set.seed(205650)
+line = sample(1:length(DOSTOYEVSKI_ENCODED), 1)
+enc_string = DOSTOYEVSKI_ENCODED[line]
+enc_string
+enc_string = strsplit(enc_string, "")[[1]]
+text = enc_string[1:30]
+text = vector_to_string(text)
+
+n = 100
+nr = 50000
+p = 1
+proposal = 2
+
+key_real = sample(alpha)
+
+results_diff_author = f_sim(n, nr, p, proposal, text, key_real, JANEAUSTEN_REFERENCE_FREQUENCY$bigrams, JANEAUSTEN_REFERENCE_FREQUENCY$Freq)
+
+diff_authors[1,1] = mean(results_diff_author$key_accuracy)
+diff_authors[1,2] = sd(results_diff_author$key_accuracy)
+diff_authors[1,3] = mean(results_diff_author$text_accuracy)
+diff_authors[1,4] = sd(results_diff_author$text_accuracy)
+diff_authors[1,5] = mean(results_diff_author$acceptance_rate)
+diff_authors[1,6] = sd(results_diff_author$acceptance_rate)
+
+```
+
 
