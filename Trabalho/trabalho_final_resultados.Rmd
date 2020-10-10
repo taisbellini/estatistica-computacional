@@ -1,0 +1,43 @@
+---
+title: "Trabalho Final - Estatística Computacional PPGEst - 2020/2"
+output: html_notebook
+---
+
+Ler arquivo de resultados:
+```{r}
+result_final = read.csv2("resultado_same_author.csv")
+```
+
+Analise:
+
+```{r}
+zero = result[result$text_accuracy == 0,]
+zero
+
+non_zero = result[result$text_accuracy != 0,]
+non_zero
+
+hist(non_zero$text_accuracy)
+mean(non_zero$text_accuracy)
+
+hist(result$f_max)
+
+result_max_acc = result[result$text_accuracy == max(result$text_accuracy),]
+result_max_acc
+
+result_max_f = result[result$f_max == max(result$f_max),]
+result_max_f
+
+```
+
+```{r}
+#install.packages("ggplot2")
+library(ggplot2)
+
+ggplot(result_final, aes(text_accuracy)) +
+        geom_histogram() +
+        scale_x_continuous(name = "Acurácia do Texto") +
+        scale_y_continuous(name = "Count")
+
+```
+

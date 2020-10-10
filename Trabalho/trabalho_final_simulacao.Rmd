@@ -1,5 +1,5 @@
 ---
-title: "trabalho_final_simulacao"
+title: "Trabalho Final - Estatística Computacional PPGEst - 2020/2"
 date: "10/5/2020"
 output: html_document
 ---
@@ -136,15 +136,6 @@ write.csv2(resultados_propostas, "results_proposta_consolidado.csv")
 ```
 
 
-     Proposta Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
-[1,]        1     0.2425926 0.09648729      0.5054688   0.1170668              0.339325        0.007961875
-[2,]        2     0.2500000 0.07959449      0.5187500   0.1430798              0.142500        0.006233863
-[3,]        3     0.2277778 0.12270564      0.4851563   0.1724702              0.182095        0.006491734
-
-A proposta escolhida foi a 2. Observe que a taxa de aceitacao esta muito alta. Vamos ajustar o parametro p para obtermos uma taxa mais adequada.
-
-RESULTADO CORRETO:
-
     Proposta Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
 [1,]        1     0.2481481 0.09392799      0.5296875   0.1683551              0.338175        0.007640810
 [2,]        2     0.2055556 0.09109907      0.4664063   0.1700543              0.142340        0.006206567
@@ -182,14 +173,6 @@ write.csv2(resultados_p, "resultados_p_consolidado.csv")
 
 
        p Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
-[1,] 1.5     0.2481481 0.09392799      0.5625000   0.1519135              0.084470        0.005442822
-[2,] 1.0     0.2592593 0.08665150      0.5679688   0.1490336              0.143475        0.006542724
-[3,] 0.5     0.1629630 0.08359824      0.3640625   0.1406798              0.306610        0.006548194
-
-
-RESULTADO CORRETO:
-
-       p Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
 [1,] 1.5     0.2648148 0.11729079      0.5390625   0.1980645              0.257960        0.007048210
 [2,] 1.0     0.2259259 0.08229261      0.5125000   0.1635310              0.341195        0.007303530
 [3,] 0.5     0.1851852 0.07879681      0.4132812   0.1397979              0.503430        0.005244155
@@ -223,18 +206,7 @@ resultados_it
 write.csv2(resultados_it, "resultados_it_consolidado.csv")
 ```
 
-        it Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
-[1,]  5000     0.2000000 0.08006928      0.4617188  0.15396979              0.146650        0.007505752
-[2,] 10000     0.2518519 0.09354288      0.5375000  0.14913057              0.142320        0.004953956
-[3,] 50000     0.2685185 0.06112440      0.5906250  0.09161494              0.141618        0.003228426
-
-
-RESULTADOS CORRETOS
-
-        it Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
-[1,]  5000     0.2277778 0.08688033      0.5203125   0.1739262               0.25634        0.008754692
-[2,] 10000            NA         NA             NA          NA                    NA                 NA
-[3,] 50000            NA         NA             NA          NA                    NA                 NA
+ s
 
 
 Estrutura para salvar resultados: Media e desvio de cada medida de resultado
@@ -252,9 +224,10 @@ ENC_TXT = clean_text(enc_txt)
 set.seed(205)
 line = sample(1:length(ENC_TXT), 1)
 enc_string = ENC_TXT[line]
-enc_string = strsplit(enc_string, "")[[1]]
-text = enc_string[1:30]
-text = vector_to_string(text)
+#enc_string = strsplit(enc_string, "")[[1]]
+#text = enc_string[1:30]
+#text = vector_to_string(text)
+text = enc_string 
 
 n = 100
 key_real = sample(alpha)
@@ -263,7 +236,7 @@ for (i in 1:36){
   proposal = param_tuning[i,1]
   p = param_tuning[i,2]
   nr = param_tuning[i,3]
-  result = f_sim(n, nr, p, proposal, text, key_real, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
+  result = f_sim(n, nr, p, proposal, text, REFERENCE_FREQUENCY$bigrams, REFERENCE_FREQUENCY$Freq)
   
   param_tuning[i,4] = mean(result$key_accuracy)
   param_tuning[i,5] = sd(result$key_accuracy)
@@ -333,14 +306,12 @@ same_author[1,4] = sd(results_same_author$text_accuracy)
 same_author[1,5] = mean(results_same_author$acceptance_rate)
 same_author[1,6] = sd(results_same_author$acceptance_rate)
 
-results_same_author$text_accuracy
 write.csv2(results_same_author, file = "resultado_same_author.csv")
 write.csv2(same_author, file = "resultado_same_author_consolidado.csv")
 same_author
 
 ```
 
-RESULTADO CERTO
    Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
 [1,]     0.2644444  0.1613136      0.4510606   0.2917065              0.239898        0.007451947
 
