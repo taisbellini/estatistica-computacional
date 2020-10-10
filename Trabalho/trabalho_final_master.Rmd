@@ -314,7 +314,7 @@ mcmc = function(encoded, key0, reference_bigrams, reference_freq, proposal=2, nr
 ```
 
 
-Rodando o algoritmo MCMC:
+Rodando o algoritmo MCMC para testes:
 ```{r}
 
 # Texto referencia
