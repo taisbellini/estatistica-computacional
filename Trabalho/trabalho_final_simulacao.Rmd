@@ -75,7 +75,6 @@ fsim_result = f_sim(n, nr, p, proposal, text, REFERENCE_FREQUENCY$bigrams, REFER
 fsim_result
 ```
 
-
 # Simulacao 
 
 ## Ajustando os parametros
@@ -106,7 +105,7 @@ Varia o numero de iteracoes do Algoritmo MCMC: 1000, 10000, 50000
 
 ### Proposta
 
-Vamos testar as 3 propostas rodando o mcmc 20 vezes com cada uma e 10000 iteracoes.
+Vamos testar as 3 propostas rodando o mcmc 20 vezes com cada uma e 10000 iteracoes, p=1.
 
 ```{r}
 resultados_propostas = matrix(nrow = 3, ncol = 7)
@@ -143,7 +142,7 @@ write.csv2(resultados_propostas, "results_proposta_consolidado.csv")
 
 ### Validando o parametro p
 
-
+Vamos fixar a proposta 1 (melhores resultados na simulacao anterior) e 10000 iteracoes:
 ```{r}
 resultados_p = matrix(nrow = 3, ncol = 7)
 resultados_p[,1] = c(1.5, 1, 0.5)
@@ -180,6 +179,7 @@ write.csv2(resultados_p, "resultados_p_consolidado.csv")
 
 ### Validando o numero de iteracoes
 
+Vamos fizar proposta = 1, p = 1.5:
 ```{r}
 resultados_it = matrix(nrow = 3, ncol = 7)
 resultados_it[,1] = c(5000, 10000, 50000)
@@ -206,8 +206,13 @@ resultados_it
 write.csv2(resultados_it, "resultados_it_consolidado.csv")
 ```
 
- s
+  it Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
+[1,]  5000     0.2518519  0.1614854      0.3984848   0.2987375              0.250340        0.009520526
+[2,] 10000     0.3092593  0.1339573      0.5431818   0.2429358              0.246455        0.005975782
+[3,] 50000     0.3759259  0.1035609      0.6750000   0.1525859              0.246101        0.002269259
 
+
+#### Validando todas as combinacoes de iteracoes
 
 Estrutura para salvar resultados: Media e desvio de cada medida de resultado
 ```{r}
@@ -254,10 +259,9 @@ for (i in 1:36){
 
 Acima, executamos algumas simulacoes para escolher parametros otimos para o nosso algoritmo. Os parametros preliminarmente escolhidos foram:
 
-p: 1
-it: 50000 ou mais
-proposal: 2 (troca 4 caracteres da chave por vez)
-
+p: 1.5
+it: 10000 ou mais
+proposal: 1 (troca 2 caracteres da chave por vez)
 
 Agora, vamos executar a simulacao 100 vezes com alguns cenarios diferentes:
 
@@ -315,47 +319,5 @@ same_author
    Media Acc Key Sd Acc Key Media Acc Text Sd Acc Text Media Acceptance Rate Sd Acceptance Rate
 [1,]     0.2644444  0.1613136      0.4510606   0.2917065              0.239898        0.007451947
 
-2) Autores diferentes
-
-```{r}
-diff_authors = matrix(nrow = 1, ncol = 6)
-colnames(diff_authors) = c('Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
-
-
-# Preparando os dados
-JANEAUSTEN_REFERENCE = clean_text(readLines("pride_and_prejudice.txt"))
-DOSTOYEVSKI_ENCODED = clean_text(readLines("war_and_piece.txt"))
-
-JANEAUSTEN_REFERENCE_BIGRAMS = get_bigrams_from_text(JANEAUSTEN_REFERENCE)
-
-JANEAUSTEN_REFERENCE_FREQUENCY = get_bigrams_freq(JANEAUSTEN_REFERENCE_BIGRAMS) 
-
-# Escolhe uma linha randomica para decriptar
-set.seed(205650)
-line = sample(1:length(DOSTOYEVSKI_ENCODED), 1)
-enc_string = DOSTOYEVSKI_ENCODED[line]
-enc_string
-#enc_string = strsplit(enc_string, "")[[1]]
-#text = enc_string[1:30]
-#text = vector_to_string(text)
-text = enc_string
-
-n = 100
-nr = 50000
-p = 1
-proposal = 2
-
-key_real = sample(alpha)
-
-results_diff_author = f_sim(n, nr, p, proposal, text, key_real, JANEAUSTEN_REFERENCE_FREQUENCY$bigrams, JANEAUSTEN_REFERENCE_FREQUENCY$Freq)
-
-diff_authors[1,1] = mean(results_diff_author$key_accuracy)
-diff_authors[1,2] = sd(results_diff_author$key_accuracy)
-diff_authors[1,3] = mean(results_diff_author$text_accuracy)
-diff_authors[1,4] = sd(results_diff_author$text_accuracy)
-diff_authors[1,5] = mean(results_diff_author$acceptance_rate)
-diff_authors[1,6] = sd(results_diff_author$acceptance_rate)
-
-```
 
 
