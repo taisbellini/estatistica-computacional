@@ -13,7 +13,7 @@ Funcao para rodar n vezes o MCMC (arquivo master) e guardar os resultados.
 ```{r}
 
 # Recebe o numero de vezes que ira rodar o MCMC, o numero de iteracoes que o MCMC tera, o parametro p e a proposta a ser usada.
-f_sim = function(n, nr, p, proposal, text, reference_bigrams, reference_freq){
+f_sim = function(n, nr, p, proposal, text, reference_bigrams, reference_freq, alpha=c(LETTERS, ' ')){
   
   key_accuracy = numeric(n)
   text_accuracy = numeric(n)
@@ -27,9 +27,9 @@ f_sim = function(n, nr, p, proposal, text, reference_bigrams, reference_freq){
     key_real = sample(alpha)
     encoded = encode_subs(key_real, text)
     
-    result = mcmc(encoded, key0, reference_bigrams, reference_freq, proposal = proposal, nr = nr, p = p)
+    result = mcmc(encoded, key0, reference_bigrams, reference_freq, proposal = proposal, nr = nr, p = p, alpha=alpha)
     key_accuracy[i] = accuracy(key_real, result$key_max)
-    decoded = decode_subs(result$key_max, encoded)
+    decoded = decode_subs(result$key_max, encoded, alpha = alpha)
     text_accuracy[i] = accuracy(text_list, decoded)
     acceptance_rate[i] = result$accept/nr
     f_max[i] = result$f_max
@@ -320,4 +320,52 @@ same_author
 [1,]     0.2644444  0.1613136      0.4510606   0.2917065              0.239898        0.007451947
 
 
+#### Textos em portugues
 
+```{r}
+```
+
+
+```{r}
+same_author_ptbr = matrix(nrow = 1, ncol = 6)
+colnames(same_author_ptbr) = c('Media Acc Key', 'Sd Acc Key', 'Media Acc Text', 'Sd Acc Text', 'Media Acceptance Rate', 'Sd Acceptance Rate')
+
+
+# Preparando os dados
+JANEAUSTEN_REFERENCE_PTBR = clean_text(readLines("Orgulho-e-Preconceito.txt"))
+JANEAUSTEN_ENCODED_PTBR = clean_text(readLines("Razao-e-Sensibilidade.txt"))
+
+JANEAUSTEN_REFERENCE_BIGRAMS_PTBR = get_bigrams_from_text(JANEAUSTEN_REFERENCE_PTBR)
+
+JANEAUSTEN_REFERENCE_FREQUENCY_PTBR = get_bigrams_freq(JANEAUSTEN_REFERENCE_BIGRAMS_PTBR) 
+
+# Escolhe uma linha randomica para decriptar
+set.seed(205650)
+line = sample(1:length(JANEAUSTEN_ENCODED_PTBR), 1)
+enc_string = JANEAUSTEN_ENCODED_PTBR[line]
+text = enc_string
+#enc_string = strsplit(enc_string, "")[[1]]
+#text = enc_string[1:30]
+#text = vector_to_string(text)
+
+n = 100
+nr = 10000
+p = 1.5
+proposal = 1
+
+key_real = sample(alpha_ptbr)
+
+results_same_author = f_sim(n, nr, p, proposal, text, JANEAUSTEN_REFERENCE_FREQUENCY_PTBR$bigrams, JANEAUSTEN_REFERENCE_FREQUENCY_PTBR$Freq, alpha=alpha_ptbr)
+
+same_author[1,1] = mean(results_same_author$key_accuracy)
+same_author[1,2] = sd(results_same_author$key_accuracy)
+same_author[1,3] = mean(results_same_author$text_accuracy)
+same_author[1,4] = sd(results_same_author$text_accuracy)
+same_author[1,5] = mean(results_same_author$acceptance_rate)
+same_author[1,6] = sd(results_same_author$acceptance_rate)
+
+write.csv2(results_same_author, file = "resultado_same_author_ptbr.csv")
+write.csv2(same_author, file = "resultado_same_author_consolidado_ptbr.csv")
+same_author
+
+```

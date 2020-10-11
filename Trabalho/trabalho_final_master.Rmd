@@ -43,6 +43,18 @@ clean_text = function(text){
   clean_text = clean_text[length(clean_text) >1]
   return(clean_text)
 }
+
+clean_text_pt = function(text){
+  clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
+  clean_text = clean_text[clean_text != ""]
+  clean_text = clean_text[length(clean_text) >1]
+  clean_text = gsub("\"", "", clean_text)
+  clean_text = gsub("'", "", clean_text)
+  clean_text = gsub("-", " ", clean_text)
+  clean_text = clean_text[length(clean_text) >1]
+  return(clean_text)
+}
+
 ```
 
 Testando a função:
@@ -50,6 +62,10 @@ Testando a função:
 #Lendo de um arquivo txt
 ref_txt = get_text('war_and_piece.txt')
 REFERENCE_TEXT = clean_text(ref_txt)
+
+#ptbr
+ref_ptbr = get_text('Guerra-e-paz.txt')
+REFERENCE_TEXT_PTBR = clean_text_pt(ref_ptbr)
 ```
 
 
@@ -277,17 +293,17 @@ prob_accept = function(pi_old, pi_new, p = 10){
 
 Implementacao do algoritmo MCMC.
 ```{r}
-mcmc = function(encoded, key0, reference_bigrams, reference_freq, proposal=2, nr=10000, p = 1.5) {
+mcmc = function(encoded, key0, reference_bigrams, reference_freq, proposal=2, nr=10000, p = 1.5, alpha=c(LETTERS, ' ')) {
   
   f_max = 0
   key_old = key_max = key0
-  decoded_old = decode_subs(key_old, encoded)
+  decoded_old = decode_subs(key_old, encoded, alpha)
   f_old = f_max = funcao_p(decoded_old, reference_bigrams, reference_freq)
   accept = 0
   
   for (i in 1:nr){
     key_new = proposal_list[[proposal]](key_old)
-    decoded_new = decode_subs(key_new, encoded)
+    decoded_new = decode_subs(key_new, encoded, alpha)
     f_new = funcao_p(decoded_new, reference_bigrams, reference_freq)
     
     prob_accept = prob_accept(f_old, f_new, p=p)
@@ -366,6 +382,63 @@ accuracy_text
 
 acceptance_rate = result$accept/nr
 acceptance_rate
+```
+
+
+Testando em ptbr:
+
+```{r}
+# Texto referencia
+ref_txt = get_text('Guerra-e-paz.txt')
+REFERENCE_TEXT_PTBR = clean_text_pt(ref_txt)
+
+# Bigramas e suas frequencias de referencia
+BIGRAMS_REF_PTBR = get_bigrams_from_text(REFERENCE_TEXT_PTBR)
+REFERENCE_FREQUENCY_PTBR = get_bigrams_freq(BIGRAMS_REF_PTBR)
+
+
+# Texto a ser codificado e decodificado
+enc_txt_ptbr = get_text('Orgulho-e-Preconceito.txt')
+ENC_TXT_PTBR = clean_text_pt(enc_txt_ptbr)
+set.seed(205)
+line = sample(1:length(ENC_TXT_PTBR), 1)
+enc_string_ptbr = ENC_TXT_PTBR[line]
+enc_string_ptbr
+text_ptbr = enc_string_ptbr
+text_ptbr
+# Codificando o texto
+acentos = c("Ã", "À", "Á", "Â", "É", "Ê", "Í", "Ó", "Ô", "Õ", "Ç")
+alpha_ptbr = c(LETTERS, ' ', acentos)
+set.seed(205440)
+key_real_ptbr = sample(alpha_ptbr)
+encoded = encode_subs(key_real_ptbr, text_ptbr, alpha_ptbr)
+encoded
+
+#Parametros da funcao
+nr = 10000
+key0 = alpha_ptbr
+proposal = 1
+p = 1.5
+
+# Rodando o MCMC
+result = mcmc(encoded, key0, REFERENCE_FREQUENCY_PTBR$bigrams, REFERENCE_FREQUENCY_PTBR$Freq, proposal = proposal, nr = nr ,p=p, alpha_ptbr)
+result
+
+# Avaliando os resultados
+accuracy_key = accuracy(key_real_ptbr, result$key_max)
+accuracy_key
+
+dec = decode_subs(result$key_max, encoded, alpha_ptbr)
+dec
+
+text_list = strsplit(text_ptbr, "")[[1]]
+
+accuracy_text = accuracy(text_list, dec)
+accuracy_text
+
+acceptance_rate = result$accept/nr
+acceptance_rate
+
 ```
 
 
