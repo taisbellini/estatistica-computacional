@@ -32,15 +32,19 @@ clean_string = function(text){
 # Funcao para limpar um texto lido de um txt
 # Entrada: vetor
 # Saida: vetor
-clean_text = function(text){
+clean_text = function(text, accent = FALSE){
   clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
   clean_text = clean_text[clean_text != ""]
   clean_text = clean_text[length(clean_text) >1]
-  clean_text = iconv(clean_text, from = "UTF-8", to = "ASCII//TRANSLIT")
   clean_text = gsub("\"", "", clean_text)
   clean_text = gsub("'", "", clean_text)
   clean_text = gsub("-", " ", clean_text)
   clean_text = clean_text[length(clean_text) >1]
+  
+  if(accent == FALSE){
+      clean_text = iconv(clean_text, from = "UTF-8", to = "ASCII//TRANSLIT")
+  }
+  
   return(clean_text)
 }
 ```
@@ -49,6 +53,10 @@ Testando a função:
 ```{r}
 #Lendo de um arquivo txt
 ref_txt = get_text('war_and_piece.txt')
+REFERENCE_TEXT = clean_text(ref_txt)
+
+# 
+ref_txt = get_text('Guerra-e-Paz.txt')
 REFERENCE_TEXT = clean_text(ref_txt)
 ```
 
