@@ -5,7 +5,7 @@ output: html_notebook
 
 Ler arquivo de resultados:
 ```{r}
-result_final = read.csv2("resultado_same_author.csv")
+result = read.csv2("resultado_same_author.csv")
 ```
 
 Analise:
@@ -35,9 +35,10 @@ result_max_f
 library(ggplot2)
 
 ggplot(result_final, aes(text_accuracy)) +
-        geom_histogram() +
+        geom_histogram(bins = 10, color = 'white') +
         scale_x_continuous(name = "Acurácia do Texto") +
-        scale_y_continuous(name = "Count")
+        scale_y_continuous(name = NULL) + 
+  theme_bw()
 
 ```
 
