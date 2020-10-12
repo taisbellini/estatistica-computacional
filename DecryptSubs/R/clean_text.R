@@ -1,3 +1,17 @@
+#' @title Clean Text
+#' @name clean_text
+#'
+#' @description Limpa um texto.
+#'
+#' @param text Texto a ser limpado
+#' @param accent logical. Se FALSE a função tira os acentos do texto. Se TRUE, ela deixa. Default é
+#' tirar os acentos.
+#'
+#' @return O texto limpo.
+#'
+#' @author Taís Bellini e Juliana Sena de Souza
+#'
+#' @export
 clean_text = function(text, accent = FALSE){
   clean_text = trimws(toupper(gsub("[[:punct:]]|[0-9]*", "", text)))
   clean_text = clean_text[clean_text != ""]

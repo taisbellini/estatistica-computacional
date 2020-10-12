@@ -67,15 +67,15 @@ Testando a função:
 ref_txt = get_text('war_and_piece.txt')
 REFERENCE_TEXT = clean_text(ref_txt)
 
-<<<<<<< HEAD
+#<<<<<<< HEAD
 # 
 ref_txt = get_text('Guerra-e-Paz.txt')
 REFERENCE_TEXT = clean_text(ref_txt)
-=======
+#=======
 #ptbr
 ref_ptbr = get_text('Guerra-e-paz.txt')
 REFERENCE_TEXT_PTBR = clean_text_pt(ref_ptbr)
->>>>>>> 7d9f8891fc685f79b8efe85ec5b8f89f0004c2da
+#>>>>>>> 7d9f8891fc685f79b8efe85ec5b8f89f0004c2da
 ```
 
 
@@ -195,7 +195,7 @@ Funcao que avalia a probablilidade de uma frase estar "correta" baseada na frequ
 #reference_bigrams = reference$bigrams
 #reference_freq = reference$Freq
 
-funcao_p = function(encoded_text, reference_bigrams, reference_freq){
+funcao_p = function(encoded_text, reference_bigrams, reference_freq, pipower = 0.25){
   
   decoded_str = paste(unlist(encoded_text), collapse='') #texto
   bigrams_decoded = get_bigrams_from_text(decoded_str) #pega os bigramas
@@ -215,7 +215,7 @@ funcao_p = function(encoded_text, reference_bigrams, reference_freq){
     p_result = p_result + f*log(r)
   }
   
-  return (p_result*0.25) # multiplicador da implementacao dos autores do artigo
+  return (p_result*pipower) # multiplicador da implementacao dos autores do artigo
 }
 
 ```
@@ -303,7 +303,7 @@ prob_accept = function(pi_old, pi_new, p = 10){
 
 Implementacao do algoritmo MCMC.
 ```{r}
-mcmc = function(encoded, key0, reference_bigrams, reference_freq, proposal=2, nr=10000, p = 1.5, alpha=c(LETTERS, ' ')) {
+mcmc = function(encoded, key0, reference_bigrams, reference_freq, proposal=2, nr=10000, p = 1.5, alpha =c(LETTERS, ' ')) {
   
   f_max = 0
   key_old = key_max = key0
